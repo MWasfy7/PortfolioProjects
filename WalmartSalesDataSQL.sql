@@ -2,13 +2,6 @@
 --From WalmartSalesData
 -- Feature Engineering 
 --TimeOfDay
---Select Time,
---Case 
---	When Time between '00:00:00' And '12:00:00' Then 'Morning'
---	When Time between '12:01:00' And '16:00:00' Then 'Afternoon'
---	Else 'Evening' 
---End AS TimeOfDay
---From WalmartSalesData
 SELECT 
     Time,
     CASE 
