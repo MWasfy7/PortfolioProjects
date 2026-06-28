@@ -296,10 +296,11 @@
       <button class="btn-ghost" id="uploadBtn">Upload CSV / Excel</button>
       <input type="file" id="file" accept=".csv,.xlsx,.xls,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
       <button class="btn-ghost" id="demoBtn">Try sample</button>
+      <button class="btn-ghost" id="exportBtn">Export CSV</button>
       <span class="grow"></span>
       <button class="danger-link" id="clearBtn">Clear all</button>
     </div>
-    <div class="hint">CSV or Excel (.xlsx) with a header row works too (Name, Phone, Status, Company). Duplicate numbers are removed automatically.</div>
+    <div class="hint">CSV or Excel (.xlsx) with a header row works too — columns can be in any order (Name, Phone, Status, Company). Duplicate numbers are removed automatically. Export saves your list with a Sent column.</div>
   </section>
 
   <!-- STATS -->
@@ -414,9 +415,9 @@
   }
 
   // ---------- Parsing ----------
-  // Splits a single line into fields. Prefer tab (unambiguous — from Excel/Sheets),
+  // Splits a line into raw cells. Prefer tab (unambiguous — from Excel/Sheets),
   // then comma, then "Name <spaces> number".
-  function parseLine(line) {
+  function splitLine(line) {
     const trimmed = line.trim();
     if (!trimmed) return null;
 
@@ -429,18 +430,42 @@
       if (m) parts = [m[1], m[2]];
       else parts = [trimmed, ""]; // only a name, no number
     }
-    parts = parts.map((p) => p.trim());
-    return {
-      name: parts[0] || "",
-      phone: parts[1] || "",
-      status: parts[2] || "",
-      company: parts[3] || ""
-    };
+    return parts.map((p) => p.trim());
   }
 
-  function looksLikeHeader(fields) {
-    const j = (fields.name + " " + fields.phone).toLowerCase();
-    return /\bname\b/.test(j) && /\b(phone|number|mobile|tel|whatsapp)\b/.test(j);
+  // Header keyword patterns for each known column. English tokens use word
+  // boundaries; Arabic tokens match by substring (JS \b is ASCII-only).
+  const COL_PATTERNS = {
+    name:    /\b(name|contact|client)\b|الاسم|اسم/i,
+    phone:   /\b(phone|number|mobile|tel|whats ?app|cell|no\.?)\b|الموبايل|رقم|تليفون|الهاتف/i,
+    status:  /\b(status|state|stage|notes?)\b|الحالة|ملاحظات/i,
+    company: /\b(company|developer|project|compound|org)\b|الشركة|المطور|المشروع/i
+  };
+  // Given the header cells, map each known column to its index (any order).
+  // Returns null if the row doesn't look like a header.
+  function detectColumns(cells) {
+    const map = {};
+    let hits = 0;
+    cells.forEach((cell, i) => {
+      for (const key of ["name", "phone", "status", "company"]) {
+        if (map[key] === undefined && COL_PATTERNS[key].test(cell)) { map[key] = i; hits++; break; }
+      }
+    });
+    // Need at least a recognizable name+phone header to treat row as headers.
+    if (map.name === undefined || map.phone === undefined) return null;
+    return map;
+  }
+
+  // Default positional layout when there's no header row.
+  const DEFAULT_COLS = { name: 0, phone: 1, status: 2, company: 3 };
+  function pick(cells, idx) { return (idx === undefined || cells[idx] === undefined) ? "" : cells[idx]; }
+  function fieldsFor(cells, cols) {
+    return {
+      name: pick(cells, cols.name),
+      phone: pick(cells, cols.phone),
+      status: pick(cells, cols.status),
+      company: pick(cells, cols.company)
+    };
   }
 
   function makeId(wa, name, idx) {
@@ -450,20 +475,26 @@
   // Build contacts from raw text; dedupe by wa number (keeps first).
   function buildContacts(text) {
     const lines = text.split(/\r?\n/);
+    const rows = lines.map(splitLine).filter(Boolean);
+    if (rows.length === 0) return [];
+
+    // If the first row is a header, use it to map columns (any order); else positional.
+    let cols = DEFAULT_COLS, start = 0;
+    const detected = detectColumns(rows[0]);
+    if (detected) { cols = detected; start = 1; }
+
     const out = [];
     const seenWa = new Set();
     let idx = 0;
 
-    lines.forEach((line, i) => {
-      const fields = parseLine(line);
-      if (!fields) return;
-      if (i === 0 && looksLikeHeader(fields)) return; // skip header row
-      if (!fields.name && !fields.phone) return;
+    for (let i = start; i < rows.length; i++) {
+      const fields = fieldsFor(rows[i], cols);
+      if (!fields.name && !fields.phone) continue;
       idx++;
 
       const norm = normalizePhone(fields.phone);
       if (norm.ok) {
-        if (seenWa.has(norm.wa)) return; // drop duplicate number
+        if (seenWa.has(norm.wa)) continue; // drop duplicate number
         seenWa.add(norm.wa);
         out.push({
           id: norm.wa,
@@ -489,7 +520,7 @@
           reason: norm.reason
         });
       }
-    });
+    }
     return out;
   }
 
@@ -821,6 +852,35 @@
       reader.readAsText(f);
     }
     e.target.value = "";
+  });
+
+  // ---------- Export ----------
+  function csvCell(v) {
+    const s = String(v == null ? "" : v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  $("exportBtn").addEventListener("click", function () {
+    if (!contacts.length) { alert("Nothing to export yet — load some contacts first."); return; }
+    const header = ["Name", "Phone", "Status", "Company", "Sent", "Needs Review"];
+    const lines = [header.map(csvCell).join(",")];
+    // Export in the same order shown on screen.
+    for (const c of sortContacts(contacts)) {
+      const sent = !c.review && sentSet.has(c.id) ? "yes" : "";
+      const phone = c.wa ? "+" + c.wa : c.rawPhone;
+      lines.push([c.name, phone, c.status, c.company, sent, c.review ? "yes" : ""].map(csvCell).join(","));
+    }
+    // Prepend BOM so Excel opens Arabic/UTF-8 correctly.
+    const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const d = new Date();
+    const stamp = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    a.href = url;
+    a.download = "whatsapp-outreach-" + stamp + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   });
 
   $("clearBtn").addEventListener("click", function () {
