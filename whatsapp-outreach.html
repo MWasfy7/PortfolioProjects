@@ -293,13 +293,13 @@
     </label>
     <div class="file-row">
       <button class="btn-soft" id="loadBtn">Load contacts</button>
-      <button class="btn-ghost" id="uploadBtn">Upload CSV</button>
-      <input type="file" id="file" accept=".csv,text/csv,text/plain" />
+      <button class="btn-ghost" id="uploadBtn">Upload CSV / Excel</button>
+      <input type="file" id="file" accept=".csv,.xlsx,.xls,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
       <button class="btn-ghost" id="demoBtn">Try sample</button>
       <span class="grow"></span>
       <button class="danger-link" id="clearBtn">Clear all</button>
     </div>
-    <div class="hint">CSV with a header row works too (Name, Phone, Status, Company). Duplicate numbers are removed automatically.</div>
+    <div class="hint">CSV or Excel (.xlsx) with a header row works too (Name, Phone, Status, Company). Duplicate numbers are removed automatically.</div>
   </section>
 
   <!-- STATS -->
@@ -414,14 +414,15 @@
   }
 
   // ---------- Parsing ----------
-  // Splits a single line into fields. Handles comma OR tab OR (when no comma/tab) "Name <spaces> number".
+  // Splits a single line into fields. Prefer tab (unambiguous — from Excel/Sheets),
+  // then comma, then "Name <spaces> number".
   function parseLine(line) {
     const trimmed = line.trim();
     if (!trimmed) return null;
 
     let parts;
-    if (trimmed.includes(",")) parts = trimmed.split(",");
-    else if (trimmed.includes("\t")) parts = trimmed.split("\t");
+    if (trimmed.includes("\t")) parts = trimmed.split("\t");
+    else if (trimmed.includes(",")) parts = trimmed.split(",");
     else {
       // "Name 0101..." — split name from the first phone-ish chunk
       const m = trimmed.match(/^(.*?)[\s]+([+0-9][\d\s\-()]{5,})$/);
@@ -768,15 +769,57 @@
     elInput.value = "";
   });
 
+  // Lazy-load SheetJS only when an Excel file is picked (keeps CSV/paste offline & instant).
+  let xlsxLoading = null;
+  function loadXLSX() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    if (xlsxLoading) return xlsxLoading;
+    xlsxLoading = new Promise(function (resolve, reject) {
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
+      s.onload = function () { window.XLSX ? resolve(window.XLSX) : reject(new Error("xlsx missing")); };
+      s.onerror = function () { reject(new Error("network")); };
+      document.head.appendChild(s);
+    });
+    return xlsxLoading;
+  }
+
+  // Turn an Excel sheet into tab-separated lines (Name, Phone, Status, Company)
+  // so the existing text parser handles it — tabs dodge comma-in-name issues.
+  function excelToText(arrayBuffer) {
+    const XLSX = window.XLSX;
+    const wb = XLSX.read(arrayBuffer, { type: "array" });
+    const sheet = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows: false, defval: "" });
+    return rows.map(function (r) {
+      return r.slice(0, 4).map(function (cell) {
+        return String(cell == null ? "" : cell).trim();
+      }).join("\t");
+    }).join("\n");
+  }
+
   $("uploadBtn").addEventListener("click", function () { $("file").click(); });
   $("file").addEventListener("change", function (e) {
     const f = e.target.files[0];
     if (!f) return;
+    const isExcel = /\.(xlsx|xls)$/i.test(f.name);
     const reader = new FileReader();
-    reader.onload = function (ev) {
-      loadFromText(String(ev.target.result), contacts.length === 0);
-    };
-    reader.readAsText(f);
+
+    if (isExcel) {
+      reader.onload = function (ev) {
+        loadXLSX().then(function () {
+          loadFromText(excelToText(ev.target.result), contacts.length === 0);
+        }).catch(function () {
+          alert("Couldn't load the Excel reader (need internet for the first Excel file).\n\nTip: in Excel, use File → Save As → CSV, then upload that — CSV works fully offline.");
+        });
+      };
+      reader.readAsArrayBuffer(f);
+    } else {
+      reader.onload = function (ev) {
+        loadFromText(String(ev.target.result), contacts.length === 0);
+      };
+      reader.readAsText(f);
+    }
     e.target.value = "";
   });
 
