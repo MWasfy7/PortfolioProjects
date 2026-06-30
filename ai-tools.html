@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>10 Open-Source AI Tools</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --card: #151922;
+    --card-hover: #1c2230;
+    --border: #262d3a;
+    --text: #e8ecf3;
+    --muted: #8b95a7;
+    --accent: #7c5cff;
+    --star: #ffce3a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 48px 20px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 40px; }
+  header h1 { font-size: 2.2rem; font-weight: 700; letter-spacing: -0.02em; }
+  header p { color: var(--muted); margin-top: 10px; font-size: 1rem; }
+  header a { color: var(--accent); text-decoration: none; }
+  header a:hover { text-decoration: underline; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 18px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    transition: transform .15s ease, background .15s ease, border-color .15s ease;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    background: var(--card-hover);
+    border-color: var(--accent);
+  }
+  .card-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .rank {
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: rgba(124, 92, 255, .12);
+    border-radius: 999px;
+    padding: 2px 10px;
+  }
+  .stars { font-size: .85rem; color: var(--muted); white-space: nowrap; }
+  .stars .ico { color: var(--star); }
+  .card h2 { font-size: 1.25rem; margin: 12px 0 10px; letter-spacing: -0.01em; }
+  .card ul { list-style: none; margin: 0 0 16px; padding: 0; flex: 1; }
+  .card li {
+    color: var(--muted);
+    font-size: .92rem;
+    padding-left: 18px;
+    position: relative;
+    margin-bottom: 7px;
+  }
+  .card li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: .62em;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .card a.repo {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: .9rem;
+    font-weight: 600;
+  }
+  .card a.repo:hover { text-decoration: underline; }
+  footer { text-align: center; color: var(--muted); font-size: .82rem; margin-top: 44px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>10 Open-Source AI Tools</h1>
+    <p>Curated from the <a href="https://www.instagram.com/aipagedaily/" target="_blank" rel="noopener">@aipagedaily</a> "These 10 open source AI tools" post. Star counts as shown in the post.</p>
+  </header>
+  <div class="grid" id="grid"></div>
+  <footer>Star counts are approximate and reflect the figures listed in the original post.</footer>
+</div>
+<script>
+  const tools = [
+    { rank: 1, name: "Coolify", stars: "56.4K", url: "https://github.com/coollabsio/coolify",
+      bullets: ["Deploy any app without touching a cloud bill", "Self-hosted Heroku and Vercel alternative", "Push to Git; it ships and runs on your own server"] },
+    { rank: 2, name: "OpenHands", stars: "75.8K", url: "https://github.com/All-Hands-AI/OpenHands",
+      bullets: ["Hand an AI agent a coding task and walk away", "It writes code, runs commands, browses the web", "The autonomous dev that actually ships"] },
+    { rank: 3, name: "Maxun", stars: "15.7K", url: "https://github.com/getmaxun/maxun",
+      bullets: ["Scrape any website with zero code, just clicks", "Point, select, and it builds the scraper for you", "Turns sites into APIs and spreadsheets automatically"] },
+    { rank: 4, name: "Open WebUI", stars: "140K", url: "https://github.com/open-webui/open-webui",
+      bullets: ["Run a ChatGPT-style interface on your own machine", "Plug in Ollama or any OpenAI-compatible model", "Works fully offline; zero data leaves your box"] },
+    { rank: 5, name: "Browser Use", stars: "83.5K", url: "https://github.com/browser-use/browser-use",
+      bullets: ["Tell an AI agent to use any website for you", "Fills forms, shops, books, scrapes on command", "Your computer finally does the boring stuff itself"] },
+    { rank: 6, name: "Langflow", stars: "194K", url: "https://github.com/langflow-ai/langflow",
+      bullets: ["Drag and drop AI workflows, no code needed", "Build agents and RAG pipelines visually", "Export the whole thing as a Python API"] },
+    { rank: 7, name: "Supabase", stars: "102K", url: "https://github.com/supabase/supabase",
+      bullets: ["Spin up a Postgres database in seconds", "Get auth, storage, and realtime APIs free", "The open Firebase alternative everyone switched to"] },
+    { rank: 8, name: "Stirling PDF", stars: "80K", url: "https://github.com/Stirling-Tools/Stirling-PDF",
+      bullets: ["Merge, split, sign, and OCR PDFs locally", "50 plus tools, runs entirely on your server", "Nothing ever uploads to a random website"] },
+    { rank: 9, name: "Crawl4AI", stars: "67.8K", url: "https://github.com/unclecode/crawl4ai",
+      bullets: ["Turn any website into clean data for your LLM", "Outputs ready to feed straight into AI models", "Handles JavaScript-heavy pages most scrapers choke on"] },
+    { rank: 10, name: "Dify", stars: "143.8K", url: "https://github.com/langgenius/dify",
+      bullets: ["Ship production AI apps without glue code", "Combines agents, workflows, and RAG in one platform", "Self host it, own every byte of your data"] }
+  ];
+  const grid = document.getElementById("grid");
+  for (const t of tools) {
+    const card = document.createElement("div");
+    card.className = "card";
+    const lis = t.bullets.map(b => `<li>${b}</li>`).join("");
+    card.innerHTML = `
+      <div class="card-top">
+        <span class="rank">#${t.rank}</span>
+        <span class="stars"><span class="ico">★</span> ${t.stars}</span>
+      </div>
+      <h2>${t.name}</h2>
+      <ul>${lis}</ul>
+      <a class="repo" href="${t.url}" target="_blank" rel="noopener">View on GitHub →</a>
+    `;
+    grid.appendChild(card);
+  }
+</script>
+</body>
+</html>
