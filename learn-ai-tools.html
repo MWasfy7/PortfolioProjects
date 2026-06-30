@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Learn the 10 Open-Source AI Tools</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #11151d;
+    --card: #151922;
+    --card-hover: #1c2230;
+    --border: #262d3a;
+    --text: #e8ecf3;
+    --muted: #8b95a7;
+    --accent: #7c5cff;
+    --accent-soft: rgba(124, 92, 255, .14);
+    --green: #3ad29f;
+    --star: #ffce3a;
+    --code-bg: #0a0c11;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    padding: 40px 20px 80px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  header.hero { text-align: center; margin-bottom: 28px; }
+  header.hero h1 { font-size: 2.1rem; font-weight: 700; letter-spacing: -0.02em; }
+  header.hero p { color: var(--muted); margin-top: 10px; }
+
+  /* progress */
+  .progress-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .progress-bar-track {
+    flex: 1;
+    min-width: 200px;
+    height: 10px;
+    background: #0a0c11;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--green)); transition: width .3s ease; }
+  .progress-label { font-size: .9rem; color: var(--muted); white-space: nowrap; }
+  .progress-label b { color: var(--text); }
+  .reset-btn {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    border-radius: 8px; padding: 6px 12px; font-size: .8rem; cursor: pointer;
+  }
+  .reset-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  /* learning paths */
+  .paths { margin-bottom: 34px; }
+  .paths h2 { font-size: 1.15rem; margin-bottom: 14px; }
+  .path-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .path {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px;
+  }
+  .path h3 { font-size: 1rem; margin-bottom: 6px; }
+  .path .seq { color: var(--muted); font-size: .86rem; }
+  .path .seq b { color: var(--accent); font-weight: 600; }
+
+  /* category filter */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .chip {
+    background: var(--card); border: 1px solid var(--border); color: var(--muted);
+    border-radius: 999px; padding: 6px 14px; font-size: .85rem; cursor: pointer; user-select: none;
+  }
+  .chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
+
+  /* lesson card */
+  .lesson {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    margin-bottom: 16px; overflow: hidden;
+  }
+  .lesson.done { border-color: var(--green); }
+  .lesson-head {
+    display: flex; align-items: center; gap: 14px; padding: 18px 20px; cursor: pointer;
+  }
+  .lesson-head:hover { background: var(--card-hover); }
+  .checkbox {
+    width: 24px; height: 24px; border-radius: 7px; border: 2px solid var(--border);
+    flex-shrink: 0; display: grid; place-items: center; font-size: .9rem; color: var(--bg);
+    background: transparent;
+  }
+  .lesson.done .checkbox { background: var(--green); border-color: var(--green); }
+  .lesson.done .checkbox::after { content: "✓"; font-weight: 800; }
+  .lesson-title { flex: 1; }
+  .lesson-title h3 { font-size: 1.15rem; letter-spacing: -0.01em; }
+  .lesson-title .meta { font-size: .82rem; color: var(--muted); margin-top: 2px; }
+  .lesson-title .meta .cat { color: var(--accent); }
+  .stars { font-size: .82rem; color: var(--muted); white-space: nowrap; }
+  .stars .ico { color: var(--star); }
+  .chevron { color: var(--muted); transition: transform .2s ease; font-size: 1.1rem; }
+  .lesson.open .chevron { transform: rotate(90deg); }
+
+  .lesson-body { display: none; padding: 0 20px 22px; border-top: 1px solid var(--border); }
+  .lesson.open .lesson-body { display: block; }
+  .lesson-body h4 {
+    font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
+    margin: 20px 0 8px;
+  }
+  .lesson-body p { color: #c7cedb; font-size: .95rem; }
+  .lesson-body ol, .lesson-body ul { margin: 6px 0 0 20px; color: #c7cedb; font-size: .95rem; }
+  .lesson-body li { margin-bottom: 5px; }
+  .codeblock { position: relative; margin-top: 10px; }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; overflow-x: auto; font-size: .86rem;
+    font-family: "SF Mono", Menlo, Consolas, monospace; color: #d6e2ff;
+  }
+  .copy-btn {
+    position: absolute; top: 8px; right: 8px;
+    background: #1c2230; border: 1px solid var(--border); color: var(--muted);
+    border-radius: 7px; padding: 4px 10px; font-size: .74rem; cursor: pointer;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+  .task {
+    background: var(--accent-soft); border: 1px solid var(--accent);
+    border-radius: 10px; padding: 12px 14px; margin-top: 10px; font-size: .92rem; color: #dcd6ff;
+  }
+  .docs-link {
+    display: inline-block; margin-top: 16px; color: var(--accent); text-decoration: none;
+    font-weight: 600; font-size: .9rem;
+  }
+  .docs-link:hover { text-decoration: underline; }
+  .note {
+    background: #16140c; border: 1px solid #3a3417; color: #e8d9a0;
+    border-radius: 10px; padding: 12px 14px; font-size: .85rem; margin-bottom: 26px;
+  }
+  footer { text-align: center; color: var(--muted); font-size: .82rem; margin-top: 40px; }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <h1>Learn the 10 Open-Source AI Tools</h1>
+    <p>A hands-on track: pick a tool, follow the quickstart, do the first project. Your progress saves automatically in this browser.</p>
+  </header>
+
+  <div class="progress-wrap">
+    <div class="progress-label"><b id="doneCount">0</b> of <b>10</b> done</div>
+    <div class="progress-bar-track"><div class="progress-bar-fill" id="bar"></div></div>
+    <button class="reset-btn" id="resetBtn">Reset progress</button>
+  </div>
+
+  <section class="paths">
+    <h2>Suggested learning paths</h2>
+    <div class="path-grid">
+      <div class="path">
+        <h3>🏗️ Self-host your stack</h3>
+        <div class="seq"><b>Coolify</b> → <b>Supabase</b> → <b>Open WebUI</b> → <b>Stirling PDF</b></div>
+      </div>
+      <div class="path">
+        <h3>🧩 Build AI apps visually</h3>
+        <div class="seq"><b>Langflow</b> → <b>Dify</b></div>
+      </div>
+      <div class="path">
+        <h3>🤖 Automate the web</h3>
+        <div class="seq"><b>Browser Use</b> → <b>Maxun</b> → <b>Crawl4AI</b> → <b>OpenHands</b></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="note">
+    ⚠️ Commands below are typical quickstarts and can change between versions. Always confirm against each tool's official docs (linked in every lesson) before running.
+  </div>
+
+  <div class="filters" id="filters"></div>
+
+  <div id="lessons"></div>
+
+  <footer>
+    Companion to <a href="ai-tools.html">ai-tools.html</a> &amp; <a href="tools/ai-tools.md">ai-tools.md</a>.
+    Tools curated from the <a href="https://www.instagram.com/aipagedaily/" target="_blank" rel="noopener">@aipagedaily</a> post.
+  </footer>
+</div>
+
+<script>
+  const TOOLS = [
+    {
+      id: "coolify", name: "Coolify", stars: "56.4K", cat: "Self-hosting",
+      what: "An open-source, self-hostable platform to deploy apps, databases, and services on your own server — a Heroku/Vercel alternative without the cloud bill.",
+      prereq: ["A Linux server or VPS (or a spare machine) with SSH access", "Docker (the installer handles it)"],
+      steps: ["SSH into your server.", "Run the official one-line installer.", "Open the dashboard at http://your-server-ip:8000 and create your admin account.", "Connect a Git repo and click Deploy."],
+      code: "curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash",
+      task: "First project: deploy a simple static site or Node app from a GitHub repo and get it live on your own server.",
+      docs: "https://coolify.io/docs"
+    },
+    {
+      id: "supabase", name: "Supabase", stars: "102K", cat: "Self-hosting",
+      what: "An open Firebase alternative: a Postgres database with instant auth, storage, and realtime/REST APIs generated for you.",
+      prereq: ["A Supabase account (fastest) OR Docker for self-hosting", "Basic SQL helps but isn't required"],
+      steps: ["Easiest: create a free project at supabase.com.", "Create a table in the Table Editor.", "Grab your project URL + anon key from Settings → API.", "Query it from any app with the JS client."],
+      code: "npm install @supabase/supabase-js\n\n// app.js\nimport { createClient } from '@supabase/supabase-js'\nconst supabase = createClient(URL, ANON_KEY)\nconst { data } = await supabase.from('todos').select('*')",
+      task: "First project: build a 1-table 'todo' app — insert a row from the dashboard, then read it back from a tiny HTML page.",
+      docs: "https://supabase.com/docs"
+    },
+    {
+      id: "openwebui", name: "Open WebUI", stars: "140K", cat: "Self-hosting",
+      what: "A ChatGPT-style web interface you run yourself. Plug in Ollama or any OpenAI-compatible API; works fully offline.",
+      prereq: ["Docker installed", "(Optional) Ollama for fully-local models"],
+      steps: ["Run the container.", "Open http://localhost:3000 and create the first account (it becomes admin).", "Connect a model — point it at Ollama or paste an OpenAI-compatible API key.", "Start chatting."],
+      code: "docker run -d -p 3000:8080 \\\n  -v open-webui:/app/backend/data \\\n  --name open-webui \\\n  ghcr.io/open-webui/open-webui:main",
+      task: "First project: pull a small local model with Ollama (e.g. llama3.2) and chat with it through Open WebUI — no internet needed.",
+      docs: "https://docs.openwebui.com/"
+    },
+    {
+      id: "stirling", name: "Stirling PDF", stars: "80K", cat: "Self-hosting",
+      what: "A locally-hosted, all-in-one PDF toolkit: merge, split, sign, OCR, convert and 50+ more tools. Files never leave your machine.",
+      prereq: ["Docker installed"],
+      steps: ["Run the container.", "Open http://localhost:8080.", "Pick a tool from the dashboard (e.g. Merge).", "Drag in your PDFs and download the result."],
+      code: "docker run -d -p 8080:8080 \\\n  --name stirling-pdf \\\n  ghcr.io/stirling-tools/stirling-pdf:latest",
+      task: "First project: merge two PDFs into one, then run OCR on a scanned page to make it searchable.",
+      docs: "https://docs.stirlingpdf.com/"
+    },
+    {
+      id: "langflow", name: "Langflow", stars: "194K", cat: "AI app builder",
+      what: "A visual, drag-and-drop builder for AI workflows, agents, and RAG pipelines — then export the whole flow as a Python API.",
+      prereq: ["Python 3.10+", "An LLM API key (e.g. OpenAI) or a local model"],
+      steps: ["Install Langflow.", "Start the server and open the UI in your browser.", "Drag a Chat Input → Language Model → Chat Output onto the canvas and wire them up.", "Add your API key and press Play."],
+      code: "pip install langflow\nlangflow run\n# then open http://localhost:7860",
+      task: "First project: build a 3-node chatbot flow, then turn it into a RAG flow by adding a document loader + vector store.",
+      docs: "https://docs.langflow.org/"
+    },
+    {
+      id: "dify", name: "Dify", stars: "143.8K", cat: "AI app builder",
+      what: "A platform for shipping production AI apps without glue code — agents, workflows, and RAG combined, fully self-hostable.",
+      prereq: ["Docker + Docker Compose"],
+      steps: ["Clone the repo and enter the docker folder.", "Copy the example env and start the stack.", "Open http://localhost and create your admin account.", "Build an app from a template and connect a model provider."],
+      code: "git clone https://github.com/langgenius/dify.git\ncd dify/docker\ncp .env.example .env\ndocker compose up -d",
+      task: "First project: create a 'Chat' app, upload a PDF as a knowledge base, and ask questions grounded in that document.",
+      docs: "https://docs.dify.ai/"
+    },
+    {
+      id: "browseruse", name: "Browser Use", stars: "83.5K", cat: "Web automation",
+      what: "Give an AI agent control of a real browser to do tasks for you — fill forms, shop, book, and scrape on command.",
+      prereq: ["Python 3.11+", "An LLM API key", "Chromium (installed via Playwright)"],
+      steps: ["Install the package and a browser.", "Set your model API key as an env var.", "Write a few lines describing the task.", "Run it and watch the agent drive the browser."],
+      code: "pip install browser-use\nplaywright install chromium\n\n# agent.py\nimport asyncio\nfrom browser_use import Agent, ChatOpenAI\nagent = Agent(task='Find the top post on Hacker News', llm=ChatOpenAI(model='gpt-4o'))\nasyncio.run(agent.run())",
+      task: "First project: have the agent search a site and return a summary of the first result.",
+      docs: "https://docs.browser-use.com/"
+    },
+    {
+      id: "maxun", name: "Maxun", stars: "15.7K", cat: "Web automation",
+      what: "A no-code web scraper: point and click on a page and it builds a robot that turns sites into APIs and spreadsheets.",
+      prereq: ["Docker + Docker Compose"],
+      steps: ["Clone the repo.", "Start it with Docker Compose.", "Open the UI and create a new 'Robot'.", "Click the data you want; export as CSV/JSON or schedule it."],
+      code: "git clone https://github.com/getmaxun/maxun.git\ncd maxun\ncp .env.example .env\ndocker compose up -d",
+      task: "First project: build a robot that scrapes a list of products (name + price) from a page into a spreadsheet.",
+      docs: "https://github.com/getmaxun/maxun#readme"
+    },
+    {
+      id: "crawl4ai", name: "Crawl4AI", stars: "67.8K", cat: "Web automation",
+      what: "Turns any website into clean, LLM-ready data (Markdown/JSON) and handles JavaScript-heavy pages that break normal scrapers.",
+      prereq: ["Python 3.9+"],
+      steps: ["Install the package and run the setup.", "Write a short async script with the crawler.", "Print the page's clean Markdown.", "Feed that Markdown straight into your LLM."],
+      code: "pip install crawl4ai\ncrawl4ai-setup\n\n# crawl.py\nimport asyncio\nfrom crawl4ai import AsyncWebCrawler\nasync def main():\n    async with AsyncWebCrawler() as c:\n        r = await c.arun(url='https://example.com')\n        print(r.markdown)\nasyncio.run(main())",
+      task: "First project: crawl a docs page to Markdown, then ask an LLM to summarize it.",
+      docs: "https://docs.crawl4ai.com/"
+    },
+    {
+      id: "openhands", name: "OpenHands", stars: "75.8K", cat: "Web automation",
+      what: "An autonomous AI dev agent: hand it a coding task and it writes code, runs commands, and browses the web to ship it.",
+      prereq: ["Docker installed", "An LLM API key (e.g. Anthropic or OpenAI)"],
+      steps: ["Run the OpenHands container (see docs for the current exact command/tag).", "Open the UI at http://localhost:3000.", "Add your LLM API key in settings.", "Describe a task and watch the agent work."],
+      code: "# See docs for the current image tag/flags — high level:\ndocker run -it --rm --pull=always \\\n  -p 3000:3000 \\\n  -v /var/run/docker.sock:/var/run/docker.sock \\\n  --name openhands \\\n  docker.all-hands.dev/all-hands-ai/openhands:latest",
+      task: "First project: ask it to create a small FastAPI 'hello world' endpoint and run it.",
+      docs: "https://docs.all-hands.dev/"
+    }
+  ];
+
+  const STORAGE_KEY = "ai-tools-progress-v1";
+  let done = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+
+  const lessonsEl = document.getElementById("lessons");
+  const filtersEl = document.getElementById("filters");
+  const bar = document.getElementById("bar");
+  const doneCountEl = document.getElementById("doneCount");
+
+  function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(done)); }
+  function updateProgress() {
+    const n = Object.values(done).filter(Boolean).length;
+    doneCountEl.textContent = n;
+    bar.style.width = (n / TOOLS.length * 100) + "%";
+  }
+
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  function render(filter) {
+    lessonsEl.innerHTML = "";
+    TOOLS.filter(t => !filter || t.cat === filter).forEach((t, i) => {
+      const el = document.createElement("div");
+      el.className = "lesson" + (done[t.id] ? " done" : "");
+      const idx = TOOLS.indexOf(t) + 1;
+      el.innerHTML = `
+        <div class="lesson-head">
+          <div class="checkbox" data-check="${t.id}" title="Mark complete"></div>
+          <div class="lesson-title">
+            <h3>${idx}. ${t.name}</h3>
+            <div class="meta"><span class="cat">${t.cat}</span> · <span class="stars"><span class="ico">★</span> ${t.stars}</span></div>
+          </div>
+          <div class="chevron" data-toggle="${t.id}">▶</div>
+        </div>
+        <div class="lesson-body">
+          <h4>What it is</h4>
+          <p>${t.what}</p>
+          <h4>Prerequisites</h4>
+          <ul>${t.prereq.map(p => `<li>${p}</li>`).join("")}</ul>
+          <h4>Quickstart</h4>
+          <ol>${t.steps.map(s => `<li>${s}</li>`).join("")}</ol>
+          <div class="codeblock">
+            <button class="copy-btn" data-copy="${t.id}">Copy</button>
+            <pre id="code-${t.id}">${esc(t.code)}</pre>
+          </div>
+          <h4>Your first project</h4>
+          <div class="task">🎯 ${t.task}</div>
+          <a class="docs-link" href="${t.docs}" target="_blank" rel="noopener">Official docs →</a>
+        </div>
+      `;
+      lessonsEl.appendChild(el);
+    });
+    wireEvents();
+  }
+
+  function wireEvents() {
+    document.querySelectorAll("[data-toggle]").forEach(c => {
+      c.parentElement.addEventListener("click", (e) => {
+        if (e.target.closest("[data-check]")) return;
+        c.closest(".lesson").classList.toggle("open");
+      });
+    });
+    document.querySelectorAll("[data-check]").forEach(c => {
+      c.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const id = c.getAttribute("data-check");
+        done[id] = !done[id];
+        save(); updateProgress();
+        c.closest(".lesson").classList.toggle("done", !!done[id]);
+      });
+    });
+    document.querySelectorAll("[data-copy]").forEach(b => {
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const id = b.getAttribute("data-copy");
+        const text = document.getElementById("code-" + id).textContent;
+        navigator.clipboard.writeText(text).then(() => {
+          b.textContent = "Copied!";
+          setTimeout(() => b.textContent = "Copy", 1400);
+        });
+      });
+    });
+  }
+
+  // category filter chips
+  const cats = ["All", ...Array.from(new Set(TOOLS.map(t => t.cat)))];
+  cats.forEach((cat, i) => {
+    const chip = document.createElement("div");
+    chip.className = "chip" + (i === 0 ? " active" : "");
+    chip.textContent = cat;
+    chip.addEventListener("click", () => {
+      document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      render(cat === "All" ? null : cat);
+    });
+    filtersEl.appendChild(chip);
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    if (confirm("Reset all progress?")) {
+      done = {}; save(); updateProgress();
+      document.querySelectorAll(".chip")[0].click();
+      document.querySelectorAll(".lesson").forEach(l => l.classList.remove("done"));
+    }
+  });
+
+  render(null);
+  updateProgress();
+</script>
+</body>
+</html>
