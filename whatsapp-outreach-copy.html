@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>WhatsApp Outreach</title>
+<style>
+  :root {
+    --green: #25d366;
+    --green-dark: #128c7e;
+    --green-deep: #075e54;
+    --ink: #111b21;
+    --muted: #667781;
+    --line: #e9edef;
+    --bg: #f6f8f9;
+    --card: #ffffff;
+    --warn: #f0a202;
+    --warn-bg: #fff6e0;
+    --radius: 18px;
+    --shadow: 0 1px 2px rgba(11,20,26,.06), 0 8px 24px rgba(11,20,26,.06);
+    --shadow-hover: 0 6px 14px rgba(11,20,26,.10), 0 16px 40px rgba(11,20,26,.10);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Noto Sans Arabic", sans-serif;
+    background:
+      radial-gradient(900px 500px at 100% -10%, rgba(37,211,102,.10), transparent 60%),
+      radial-gradient(700px 500px at -10% 0%, rgba(18,140,126,.08), transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.45;
+    min-height: 100vh;
+  }
+  .wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 22px 16px 120px;
+  }
+
+  /* Header */
+  header.app {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .logo {
+    width: 42px; height: 42px;
+    border-radius: 13px;
+    background: linear-gradient(135deg, var(--green), var(--green-dark));
+    display: grid; place-items: center;
+    box-shadow: 0 6px 16px rgba(37,211,102,.35);
+    flex: 0 0 auto;
+  }
+  .logo svg { width: 24px; height: 24px; }
+  header.app h1 {
+    font-size: 1.25rem;
+    margin: 0;
+    letter-spacing: -.02em;
+  }
+  header.app p {
+    margin: 1px 0 0;
+    color: var(--muted);
+    font-size: .82rem;
+  }
+
+  /* Cards */
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .panel h2 {
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin: 0 0 10px;
+    font-weight: 700;
+  }
+
+  label.field { display: block; }
+
+  textarea, input[type="text"], input[type="search"] {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 14px;
+    font: inherit;
+    font-size: .95rem;
+    background: #fff;
+    color: var(--ink);
+    resize: vertical;
+    transition: border-color .15s, box-shadow .15s;
+    outline: none;
+  }
+  textarea:focus, input[type="text"]:focus, input[type="search"]:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 4px rgba(37,211,102,.14);
+  }
+  #message { min-height: 120px; direction: rtl; text-align: right; line-height: 1.7; }
+
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .grow { flex: 1 1 auto; }
+
+  /* Toggle */
+  .toggle {
+    display: inline-flex; align-items: center; gap: 9px;
+    cursor: pointer; user-select: none;
+    font-size: .9rem; color: var(--ink);
+    margin-top: 12px;
+  }
+  .switch {
+    position: relative; width: 42px; height: 24px;
+    background: #cfd8dc; border-radius: 999px;
+    transition: background .2s; flex: 0 0 auto;
+  }
+  .switch::after {
+    content: ""; position: absolute; top: 2px; left: 2px;
+    width: 20px; height: 20px; background: #fff; border-radius: 50%;
+    transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.25);
+  }
+  .toggle input { display: none; }
+  .toggle input:checked + .switch { background: var(--green); }
+  .toggle input:checked + .switch::after { transform: translateX(18px); }
+
+  /* Buttons */
+  button {
+    font: inherit; cursor: pointer; border: none; border-radius: 12px;
+    transition: transform .12s ease, box-shadow .15s, background .15s, color .15s;
+  }
+  button:active { transform: scale(.97); }
+  .btn-ghost {
+    background: #fff; border: 1px solid var(--line); color: var(--ink);
+    padding: 10px 14px; font-size: .88rem; font-weight: 600;
+  }
+  .btn-ghost:hover { border-color: var(--green); color: var(--green-dark); }
+  .btn-soft {
+    background: #eef7f1; color: var(--green-deep);
+    padding: 10px 14px; font-size: .88rem; font-weight: 700;
+  }
+  .btn-soft:hover { background: #e1f1e8; }
+
+  .hint { font-size: .78rem; color: var(--muted); margin-top: 8px; }
+  .file-row { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  input[type="file"] { display: none; }
+
+  /* Counter / stats */
+  .stats {
+    display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 14px;
+  }
+  .stat {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 8px 14px; box-shadow: var(--shadow);
+    display: flex; align-items: baseline; gap: 7px; font-size: .82rem; color: var(--muted);
+  }
+  .stat b { font-size: 1.05rem; color: var(--ink); font-weight: 800; }
+  .stat.ready b { color: var(--green-dark); }
+  .stat.sent b { color: var(--green); }
+  .stat.review b { color: var(--warn); }
+
+  /* Controls bar */
+  .controls { margin-bottom: 12px; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .chip {
+    background: #fff; border: 1px solid var(--line); color: var(--muted);
+    padding: 7px 13px; border-radius: 999px; font-size: .84rem; font-weight: 600;
+  }
+  .chip:hover { border-color: var(--green); color: var(--green-dark); }
+  .chip.active {
+    background: var(--green); color: #fff; border-color: var(--green);
+    box-shadow: 0 4px 12px rgba(37,211,102,.35);
+  }
+  .chip .cnt { opacity: .7; font-weight: 700; }
+  .chip.active .cnt { opacity: .9; }
+
+  /* List */
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  .contact {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 13px 14px;
+    display: flex; align-items: center; gap: 12px;
+    transition: transform .14s, box-shadow .15s, opacity .2s;
+  }
+  .contact:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+  .contact.sent { opacity: .58; }
+  .contact.sent .name { text-decoration: line-through; }
+  .contact.review { border-color: #f4d58a; background: linear-gradient(0deg, var(--warn-bg), #fff 60%); }
+
+  .avatar {
+    width: 44px; height: 44px; border-radius: 50%; flex: 0 0 auto;
+    display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 1rem;
+    background: linear-gradient(135deg, var(--green), var(--green-dark));
+  }
+  .contact.review .avatar { background: linear-gradient(135deg, #f0a202, #e07c00); }
+  .meta { flex: 1 1 auto; min-width: 0; }
+  .name { font-weight: 700; font-size: .98rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sub { font-size: .82rem; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .phone { font-variant-numeric: tabular-nums; }
+  .tag {
+    font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+    padding: 2px 7px; border-radius: 6px; background: #eef2f4; color: var(--muted);
+  }
+  .tag.company { background: #e8f0ff; color: #3b5bdb; }
+  .tag.warn { background: var(--warn-bg); color: #b06d00; }
+
+  .actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+  .send-btn {
+    background: var(--green); color: #fff; font-weight: 700; font-size: .9rem;
+    padding: 10px 16px; border-radius: 12px; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 7px;
+    box-shadow: 0 4px 12px rgba(37,211,102,.32);
+  }
+  .send-btn:hover { background: var(--green-dark); box-shadow: 0 6px 16px rgba(37,211,102,.45); transform: translateY(-1px); }
+  .send-btn svg { width: 16px; height: 16px; }
+  .send-btn.disabled { background: #cfd8dc; box-shadow: none; pointer-events: none; }
+
+  .check {
+    width: 30px; height: 30px; border-radius: 9px; border: 2px solid var(--line);
+    background: #fff; display: grid; place-items: center; color: transparent; flex: 0 0 auto;
+  }
+  .check:hover { border-color: var(--green); }
+  .check.on { background: var(--green); border-color: var(--green); color: #fff; }
+  .check svg { width: 16px; height: 16px; }
+
+  /* Empty state */
+  .empty {
+    text-align: center; padding: 50px 20px; color: var(--muted);
+  }
+  .empty svg { width: 56px; height: 56px; opacity: .4; margin-bottom: 12px; }
+  .empty h3 { margin: 0 0 4px; color: var(--ink); }
+
+  /* Confetti */
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
+  .pop {
+    position: fixed; width: 9px; height: 9px; border-radius: 2px;
+    z-index: 1000; pointer-events: none;
+  }
+  @keyframes pop-fall {
+    0% { opacity: 1; transform: translate(0,0) rotate(0deg) scale(1); }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(.4); }
+  }
+
+  /* small util */
+  .danger-link { color: #d33; background: none; font-size: .82rem; font-weight: 600; padding: 6px 4px; }
+  .danger-link:hover { text-decoration: underline; }
+  @media (max-width: 560px) {
+    .send-btn span { display: none; }
+    .send-btn { padding: 11px 13px; }
+    .contact { padding: 11px 12px; gap: 10px; }
+    .avatar { width: 40px; height: 40px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="app">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none"><path fill="#fff" d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2Zm5.7 14.2c-.2.6-1.2 1.2-1.7 1.2-.4 0-1 .1-3.2-.8-2.7-1.1-4.4-3.9-4.6-4.1-.1-.2-1-1.4-1-2.6 0-1.2.6-1.8.9-2 .2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.5c-.2.2-.3.3-.1.6.2.3.8 1.2 1.6 2 1.1.9 1.9 1.2 2.2 1.3.2.1.4.1.5-.1l.7-.8c.2-.2.3-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3Z"/></svg>
+    </div>
+    <div>
+      <h1>WhatsApp Outreach</h1>
+      <p>Paste contacts · auto-format numbers · send in one tap</p>
+    </div>
+  </header>
+
+  <!-- MESSAGE -->
+  <section class="panel">
+    <h2>Your message</h2>
+    <label class="field">
+      <textarea id="message" spellcheck="false" placeholder="Type the message you want to send…"></textarea>
+    </label>
+    <label class="toggle">
+      <input type="checkbox" id="useName" />
+      <span class="switch"></span>
+      <span>Start with the contact's first name</span>
+    </label>
+    <div class="hint">Your text is baked into every link live — line breaks and emoji are kept.</div>
+  </section>
+
+  <!-- IMPORT -->
+  <section class="panel">
+    <h2>Contacts</h2>
+    <label class="field">
+      <textarea id="input" placeholder="Paste here — one contact per line.&#10;Name, Phone, Status (optional), Company (optional)&#10;&#10;e.g.&#10;Ahmed Samir, 01012345678, no answer, Palm Hills&#10;Mona, 0020 100 222 3344"></textarea>
+    </label>
+    <div class="file-row">
+      <button class="btn-soft" id="loadBtn">Load contacts</button>
+      <button class="btn-ghost" id="uploadBtn">Upload CSV / Excel</button>
+      <input type="file" id="file" accept=".csv,.xlsx,.xls,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
+      <button class="btn-ghost" id="demoBtn">Try sample</button>
+      <button class="btn-ghost" id="exportBtn">Export CSV</button>
+      <span class="grow"></span>
+      <button class="danger-link" id="clearBtn">Clear all</button>
+    </div>
+    <div class="hint">CSV or Excel (.xlsx) with a header row works too — columns can be in any order (Name, Phone, Status, Company). Duplicate numbers are removed automatically. Export saves your list with a Sent column.</div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats" id="stats" style="display:none">
+    <div class="stat ready"><b id="cReady">0</b> ready</div>
+    <div class="stat sent"><b id="cSent">0</b> sent</div>
+    <div class="stat review"><b id="cReview">0</b> need review</div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls" id="controls" style="display:none">
+    <div class="filters" id="filters">
+      <button class="chip active" data-filter="all">All <span class="cnt" id="fAll">0</span></button>
+      <button class="chip" data-filter="notsent">Not sent <span class="cnt" id="fNot">0</span></button>
+      <button class="chip" data-filter="sent">Sent <span class="cnt" id="fSent">0</span></button>
+      <button class="chip" data-filter="review">Needs review <span class="cnt" id="fReview">0</span></button>
+    </div>
+    <input type="search" id="search" placeholder="🔍  Search name or number…" />
+  </div>
+
+  <!-- LIST -->
+  <div class="list" id="list"></div>
+
+  <div class="empty" id="empty">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    <h3>No contacts yet</h3>
+    <p>Paste a list above or try the sample to get started.</p>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Default message ----------
+  const DEFAULT_MSG =
+    "حضرتك عارف إن أغلب الفرص الحقيقية في السوق مش بتتعلن؟\n" +
+    "أنا معتز وصفي من Element — بشتغل بشكل خاص مع ناس عندهم معرفة بالسوق وبيدوروا على حاجة يستاهل وقتهم.\n" +
+    "لو عندك اهتمام بعقار في مصر دلوقتي — سواء استثمار أو سكن أو ساحل — ابعتلي كلمة واحدة وأنا هرشّحلك اللي يناسبك بالظبط. 🤝";
+
+  const SAMPLE =
+    "Ahmed Samir, 01012345678, no answer, Palm Hills\n" +
+    "Mona Hassan, 0020 100 222 3344, , Mountain View\n" +
+    "Karim, +20 11 5566 7788, busy\n" +
+    "Salma Adel, 0102 999 8877, switched off, SODIC\n" +
+    "Omar, 0123456789, , \n" +              // 9 digits after trim -> needs review
+    "Youssef, 201299887766, ringing\n" +
+    "Dina, 555-12-3, , \n" +                // too short -> needs review
+    "Hossam (dup), 01012345678, , ";        // duplicate of Ahmed
+
+  // ---------- Storage keys ----------
+  const LS = {
+    contacts: "wa_outreach_contacts_v1",
+    sent:     "wa_outreach_sent_v1",
+    msg:      "wa_outreach_msg_v1",
+    useName:  "wa_outreach_usename_v1"
+  };
+
+  // Status ordering: freshest/uncontacted first, then no-answer, busy, switched-off
+  const STATUS_RANK = [
+    { rank: 0, keys: ["", "new", "fresh", "uncontacted", "not contacted"] },
+    { rank: 1, keys: ["ringing", "no answer", "no-answer", "noanswer", "didn't answer", "didnt answer"] },
+    { rank: 2, keys: ["busy"] },
+    { rank: 3, keys: ["switched off", "switched-off", "switchedoff", "off", "unreachable"] }
+  ];
+  function statusRank(status) {
+    const s = (status || "").trim().toLowerCase();
+    for (const g of STATUS_RANK) if (g.keys.includes(s)) return g.rank;
+    return 1.5; // unknown statuses sit in the middle
+  }
+
+  // ---------- State ----------
+  let contacts = [];                 // [{id,name,phone(raw),wa,formatted,status,company,review,reason}]
+  let sentSet = new Set();           // set of contact ids that are sent
+  let activeFilter = "all";
+  let searchTerm = "";
+
+  // ---------- Elements ----------
+  const $ = (id) => document.getElementById(id);
+  const elMsg = $("message"), elUseName = $("useName");
+  const elInput = $("input"), elList = $("list"), elEmpty = $("empty");
+  const elStats = $("stats"), elControls = $("controls"), elSearch = $("search");
+
+  // ---------- Phone normalization ----------
+  // Egyptian mobile: 10 digits starting with 1, 2nd digit in {0,1,2,5}.
+  function normalizePhone(raw) {
+    let d = (raw || "").replace(/\D+/g, ""); // strip all non-digits
+    if (!d) return { ok: false, reason: "no digits" };
+
+    // International prefix 0020 / 20 -> country code 20
+    if (d.startsWith("0020")) d = d.slice(4);
+    else if (d.startsWith("20")) d = d.slice(2);
+
+    // drop a single leading 0 (local trunk prefix)
+    if (d.startsWith("0")) d = d.slice(1);
+
+    // Now we expect a 10-digit national mobile number
+    if (d.length !== 10) {
+      return { ok: false, reason: d.length < 10 ? "too short" : "too long" };
+    }
+    if (d[0] !== "1") return { ok: false, reason: "not a mobile prefix" };
+    if (!["0", "1", "2", "5"].includes(d[1])) return { ok: false, reason: "invalid mobile prefix" };
+
+    return { ok: true, national: d, wa: "20" + d };
+  }
+
+  function prettyFormat(wa) {
+    // wa = "20" + 10 digits  ->  +20 10 1234 5678
+    const n = wa.slice(2);
+    return "+20 " + n.slice(0, 2) + " " + n.slice(2, 6) + " " + n.slice(6);
+  }
+
+  // ---------- Parsing ----------
+  // Splits a line into raw cells. Prefer tab (unambiguous — from Excel/Sheets),
+  // then comma, then "Name <spaces> number".
+  function splitLine(line) {
+    const trimmed = line.trim();
+    if (!trimmed) return null;
+
+    let parts;
+    if (trimmed.includes("\t")) parts = trimmed.split("\t");
+    else if (trimmed.includes(",")) parts = trimmed.split(",");
+    else {
+      // "Name 0101..." — split name from the first phone-ish chunk
+      const m = trimmed.match(/^(.*?)[\s]+([+0-9][\d\s\-()]{5,})$/);
+      if (m) parts = [m[1], m[2]];
+      else parts = [trimmed, ""]; // only a name, no number
+    }
+    return parts.map((p) => p.trim());
+  }
+
+  // Header keyword patterns for each known column. English tokens use word
+  // boundaries; Arabic tokens match by substring (JS \b is ASCII-only).
+  const COL_PATTERNS = {
+    name:    /\b(name|contact|client)\b|الاسم|اسم/i,
+    phone:   /\b(phone|number|mobile|tel|whats ?app|cell|no\.?)\b|الموبايل|رقم|تليفون|الهاتف/i,
+    status:  /\b(status|state|stage|notes?)\b|الحالة|ملاحظات/i,
+    company: /\b(company|developer|project|compound|org)\b|الشركة|المطور|المشروع/i
+  };
+  // Given the header cells, map each known column to its index (any order).
+  // Returns null if the row doesn't look like a header.
+  function detectColumns(cells) {
+    const map = {};
+    let hits = 0;
+    cells.forEach((cell, i) => {
+      for (const key of ["name", "phone", "status", "company"]) {
+        if (map[key] === undefined && COL_PATTERNS[key].test(cell)) { map[key] = i; hits++; break; }
+      }
+    });
+    // Need at least a recognizable name+phone header to treat row as headers.
+    if (map.name === undefined || map.phone === undefined) return null;
+    return map;
+  }
+
+  // Default positional layout when there's no header row.
+  const DEFAULT_COLS = { name: 0, phone: 1, status: 2, company: 3 };
+  function pick(cells, idx) { return (idx === undefined || cells[idx] === undefined) ? "" : cells[idx]; }
+  function fieldsFor(cells, cols) {
+    return {
+      name: pick(cells, cols.name),
+      phone: pick(cells, cols.phone),
+      status: pick(cells, cols.status),
+      company: pick(cells, cols.company)
+    };
+  }
+
+  function makeId(wa, name, idx) {
+    return wa || ("x:" + name.toLowerCase() + ":" + idx);
+  }
+
+  // Build contacts from raw text; dedupe by wa number (keeps first).
+  function buildContacts(text) {
+    const lines = text.split(/\r?\n/);
+    const rows = lines.map(splitLine).filter(Boolean);
+    if (rows.length === 0) return [];
+
+    // If the first row is a header, use it to map columns (any order); else positional.
+    let cols = DEFAULT_COLS, start = 0;
+    const detected = detectColumns(rows[0]);
+    if (detected) { cols = detected; start = 1; }
+
+    const out = [];
+    const seenWa = new Set();
+    let idx = 0;
+
+    for (let i = start; i < rows.length; i++) {
+      const fields = fieldsFor(rows[i], cols);
+      if (!fields.name && !fields.phone) continue;
+      idx++;
+
+      const norm = normalizePhone(fields.phone);
+      if (norm.ok) {
+        if (seenWa.has(norm.wa)) continue; // drop duplicate number
+        seenWa.add(norm.wa);
+        out.push({
+          id: norm.wa,
+          name: fields.name || "(no name)",
+          status: fields.status,
+          company: fields.company,
+          rawPhone: fields.phone,
+          wa: norm.wa,
+          formatted: prettyFormat(norm.wa),
+          review: false,
+          reason: ""
+        });
+      } else {
+        out.push({
+          id: makeId("", fields.name, idx),
+          name: fields.name || "(no name)",
+          status: fields.status,
+          company: fields.company,
+          rawPhone: fields.phone,
+          wa: "",
+          formatted: fields.phone || "—",
+          review: true,
+          reason: norm.reason
+        });
+      }
+    }
+    return out;
+  }
+
+  // ---------- Message building ----------
+  function firstName(name) {
+    const n = (name || "").trim();
+    if (!n || n === "(no name)") return "";
+    return n.split(/\s+/)[0];
+  }
+
+  function messageFor(contact) {
+    let body = elMsg.value;
+    if (elUseName.checked) {
+      const fn = firstName(contact.name);
+      if (fn) body = fn + "،\n" + body;
+    }
+    return body;
+  }
+
+  function waLink(contact) {
+    return "https://wa.me/" + contact.wa + "?text=" + encodeURIComponent(messageFor(contact));
+  }
+
+  // ---------- Persistence ----------
+  function saveContacts() {
+    try { localStorage.setItem(LS.contacts, JSON.stringify(contacts)); } catch (e) {}
+  }
+  function saveSent() {
+    try { localStorage.setItem(LS.sent, JSON.stringify([...sentSet])); } catch (e) {}
+  }
+  function saveMsg() {
+    try {
+      localStorage.setItem(LS.msg, elMsg.value);
+      localStorage.setItem(LS.useName, elUseName.checked ? "1" : "0");
+    } catch (e) {}
+  }
+  function load() {
+    try {
+      const c = localStorage.getItem(LS.contacts);
+      if (c) contacts = JSON.parse(c);
+      const s = localStorage.getItem(LS.sent);
+      if (s) sentSet = new Set(JSON.parse(s));
+      const m = localStorage.getItem(LS.msg);
+      elMsg.value = (m !== null) ? m : DEFAULT_MSG;
+      elUseName.checked = localStorage.getItem(LS.useName) === "1";
+    } catch (e) {
+      elMsg.value = DEFAULT_MSG;
+    }
+  }
+
+  // ---------- Rendering ----------
+  function counts() {
+    let ready = 0, sent = 0, review = 0;
+    for (const c of contacts) {
+      if (c.review) review++;
+      else if (sentSet.has(c.id)) sent++;
+      else ready++;
+    }
+    return { ready, sent, review, total: contacts.length };
+  }
+
+  function matchesFilter(c) {
+    if (activeFilter === "review") return c.review;
+    if (activeFilter === "sent") return !c.review && sentSet.has(c.id);
+    if (activeFilter === "notsent") return !c.review && !sentSet.has(c.id);
+    return true; // all
+  }
+  function matchesSearch(c) {
+    if (!searchTerm) return true;
+    const hay = (c.name + " " + c.rawPhone + " " + c.formatted + " " + c.wa + " " + c.company).toLowerCase();
+    return hay.includes(searchTerm);
+  }
+
+  function sortContacts(arr) {
+    return arr.slice().sort((a, b) => {
+      // needs-review always last
+      if (a.review !== b.review) return a.review ? 1 : -1;
+      // sent after not-sent
+      const as = sentSet.has(a.id), bs = sentSet.has(b.id);
+      if (as !== bs) return as ? 1 : -1;
+      // by status freshness
+      const ra = statusRank(a.status), rb = statusRank(b.status);
+      if (ra !== rb) return ra - rb;
+      return 0; // stable-ish
+    });
+  }
+
+  function initials(name) {
+    const n = (name || "").trim();
+    if (!n || n === "(no name)") return "•";
+    const p = n.split(/\s+/);
+    return ((p[0][0] || "") + (p[1] ? p[1][0] : "")).toUpperCase();
+  }
+
+  const checkSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+  const sendSVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/></svg>';
+
+  function render() {
+    const hasContacts = contacts.length > 0;
+    elStats.style.display = hasContacts ? "flex" : "none";
+    elControls.style.display = hasContacts ? "block" : "none";
+    elEmpty.style.display = hasContacts ? "none" : "block";
+
+    // stats + filter counts
+    const c = counts();
+    $("cReady").textContent = c.ready;
+    $("cSent").textContent = c.sent;
+    $("cReview").textContent = c.review;
+    $("fAll").textContent = c.total;
+    $("fNot").textContent = c.ready;
+    $("fSent").textContent = c.sent;
+    $("fReview").textContent = c.review;
+
+    // filtered + searched + sorted
+    const visible = sortContacts(contacts.filter((x) => matchesFilter(x) && matchesSearch(x)));
+
+    elList.innerHTML = "";
+    if (!hasContacts) return;
+
+    if (visible.length === 0) {
+      const d = document.createElement("div");
+      d.className = "empty";
+      d.innerHTML = "<h3>Nothing here</h3><p>No contacts match this filter or search.</p>";
+      elList.appendChild(d);
+      return;
+    }
+
+    const frag = document.createDocumentFragment();
+    for (const ct of visible) {
+      const isSent = !ct.review && sentSet.has(ct.id);
+      const card = document.createElement("div");
+      card.className = "contact" + (isSent ? " sent" : "") + (ct.review ? " review" : "");
+
+      // avatar
+      const av = document.createElement("div");
+      av.className = "avatar";
+      av.textContent = initials(ct.name);
+      card.appendChild(av);
+
+      // meta
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const nm = document.createElement("div");
+      nm.className = "name";
+      nm.textContent = ct.name;
+      const sub = document.createElement("div");
+      sub.className = "sub";
+      const ph = document.createElement("span");
+      ph.className = "phone";
+      ph.textContent = ct.formatted;
+      sub.appendChild(ph);
+      if (ct.company) {
+        const tg = document.createElement("span");
+        tg.className = "tag company";
+        tg.textContent = ct.company;
+        sub.appendChild(tg);
+      }
+      if (ct.review) {
+        const tg = document.createElement("span");
+        tg.className = "tag warn";
+        tg.textContent = "review: " + (ct.reason || "check number");
+        sub.appendChild(tg);
+      } else if (ct.status) {
+        const tg = document.createElement("span");
+        tg.className = "tag";
+        tg.textContent = ct.status;
+        sub.appendChild(tg);
+      }
+      meta.appendChild(nm);
+      meta.appendChild(sub);
+      card.appendChild(meta);
+
+      // actions
+      const act = document.createElement("div");
+      act.className = "actions";
+
+      if (!ct.review) {
+        const checkBtn = document.createElement("button");
+        checkBtn.className = "check" + (isSent ? " on" : "");
+        checkBtn.title = isSent ? "Mark as not sent" : "Mark as sent";
+        checkBtn.innerHTML = checkSVG;
+        checkBtn.addEventListener("click", function (e) {
+          const turningOn = !sentSet.has(ct.id);
+          if (turningOn) { sentSet.add(ct.id); celebrate(e.currentTarget); }
+          else sentSet.delete(ct.id);
+          saveSent();
+          render();
+        });
+        act.appendChild(checkBtn);
+
+        const send = document.createElement("a");
+        send.className = "send-btn";
+        send.href = waLink(ct);
+        send.target = "_blank";
+        send.rel = "noopener";
+        send.innerHTML = sendSVG + "<span>Send</span>";
+        send.addEventListener("click", function () {
+          // auto-mark sent when opening the chat
+          if (!sentSet.has(ct.id)) {
+            sentSet.add(ct.id);
+            saveSent();
+            setTimeout(render, 350);
+          }
+        });
+        act.appendChild(send);
+      } else {
+        const dis = document.createElement("span");
+        dis.className = "send-btn disabled";
+        dis.innerHTML = sendSVG + "<span>Fix #</span>";
+        act.appendChild(dis);
+      }
+
+      card.appendChild(act);
+      frag.appendChild(card);
+    }
+    elList.appendChild(frag);
+  }
+
+  // ---------- Confetti ----------
+  const COLORS = ["#25d366", "#128c7e", "#ffd166", "#06d6a0", "#4cc9f0", "#ff70a6"];
+  function celebrate(anchor) {
+    const r = anchor.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    for (let i = 0; i < 16; i++) {
+      const p = document.createElement("div");
+      p.className = "pop";
+      p.style.left = cx + "px";
+      p.style.top = cy + "px";
+      p.style.background = COLORS[i % COLORS.length];
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 40 + Math.random() * 70;
+      p.style.setProperty("--dx", Math.cos(ang) * dist + "px");
+      p.style.setProperty("--dy", (Math.sin(ang) * dist + 40) + "px");
+      p.style.setProperty("--rot", (Math.random() * 540 - 270) + "deg");
+      p.style.animation = "pop-fall " + (650 + Math.random() * 350) + "ms cubic-bezier(.2,.7,.3,1) forwards";
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 1100);
+    }
+  }
+
+  // ---------- Actions ----------
+  function loadFromText(text, replace) {
+    const fresh = buildContacts(text);
+    if (fresh.length === 0) {
+      alert("Couldn't find any contacts in that text. Use: Name, Phone, Status, Company");
+      return;
+    }
+    if (replace || contacts.length === 0) {
+      contacts = fresh;
+    } else {
+      // merge, dedupe by id/wa
+      const ids = new Set(contacts.map((c) => c.id));
+      const waSeen = new Set(contacts.filter((c) => c.wa).map((c) => c.wa));
+      for (const c of fresh) {
+        if (ids.has(c.id)) continue;
+        if (c.wa && waSeen.has(c.wa)) continue;
+        ids.add(c.id);
+        if (c.wa) waSeen.add(c.wa);
+        contacts.push(c);
+      }
+    }
+    saveContacts();
+    render();
+  }
+
+  // ---------- Events ----------
+  $("loadBtn").addEventListener("click", function () {
+    const t = elInput.value.trim();
+    if (!t) { elInput.focus(); return; }
+    loadFromText(t, contacts.length === 0);
+    elInput.value = "";
+  });
+
+  $("demoBtn").addEventListener("click", function () {
+    elInput.value = SAMPLE;
+    loadFromText(SAMPLE, true);
+    elInput.value = "";
+  });
+
+  // Lazy-load SheetJS only when an Excel file is picked (keeps CSV/paste offline & instant).
+  let xlsxLoading = null;
+  function loadXLSX() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    if (xlsxLoading) return xlsxLoading;
+    xlsxLoading = new Promise(function (resolve, reject) {
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
+      s.onload = function () { window.XLSX ? resolve(window.XLSX) : reject(new Error("xlsx missing")); };
+      s.onerror = function () { reject(new Error("network")); };
+      document.head.appendChild(s);
+    });
+    return xlsxLoading;
+  }
+
+  // Turn an Excel sheet into tab-separated lines (Name, Phone, Status, Company)
+  // so the existing text parser handles it — tabs dodge comma-in-name issues.
+  function excelToText(arrayBuffer) {
+    const XLSX = window.XLSX;
+    const wb = XLSX.read(arrayBuffer, { type: "array" });
+    const sheet = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows: false, defval: "" });
+    return rows.map(function (r) {
+      return r.slice(0, 4).map(function (cell) {
+        return String(cell == null ? "" : cell).trim();
+      }).join("\t");
+    }).join("\n");
+  }
+
+  $("uploadBtn").addEventListener("click", function () { $("file").click(); });
+  $("file").addEventListener("change", function (e) {
+    const f = e.target.files[0];
+    if (!f) return;
+    const isExcel = /\.(xlsx|xls)$/i.test(f.name);
+    const reader = new FileReader();
+
+    if (isExcel) {
+      reader.onload = function (ev) {
+        loadXLSX().then(function () {
+          loadFromText(excelToText(ev.target.result), contacts.length === 0);
+        }).catch(function () {
+          alert("Couldn't load the Excel reader (need internet for the first Excel file).\n\nTip: in Excel, use File → Save As → CSV, then upload that — CSV works fully offline.");
+        });
+      };
+      reader.readAsArrayBuffer(f);
+    } else {
+      reader.onload = function (ev) {
+        loadFromText(String(ev.target.result), contacts.length === 0);
+      };
+      reader.readAsText(f);
+    }
+    e.target.value = "";
+  });
+
+  // ---------- Export ----------
+  function csvCell(v) {
+    const s = String(v == null ? "" : v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  $("exportBtn").addEventListener("click", function () {
+    if (!contacts.length) { alert("Nothing to export yet — load some contacts first."); return; }
+    const header = ["Name", "Phone", "Status", "Company", "Sent", "Needs Review"];
+    const lines = [header.map(csvCell).join(",")];
+    // Export in the same order shown on screen.
+    for (const c of sortContacts(contacts)) {
+      const sent = !c.review && sentSet.has(c.id) ? "yes" : "";
+      const phone = c.wa ? "+" + c.wa : c.rawPhone;
+      lines.push([c.name, phone, c.status, c.company, sent, c.review ? "yes" : ""].map(csvCell).join(","));
+    }
+    // Prepend BOM so Excel opens Arabic/UTF-8 correctly.
+    const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const d = new Date();
+    const stamp = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    a.href = url;
+    a.download = "whatsapp-outreach-" + stamp + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  });
+
+  $("clearBtn").addEventListener("click", function () {
+    if (!contacts.length) return;
+    if (!confirm("Remove all contacts and sent marks? Your message is kept.")) return;
+    contacts = [];
+    sentSet = new Set();
+    saveContacts();
+    saveSent();
+    render();
+  });
+
+  $("filters").addEventListener("click", function (e) {
+    const btn = e.target.closest(".chip");
+    if (!btn) return;
+    activeFilter = btn.dataset.filter;
+    [...this.querySelectorAll(".chip")].forEach((c) => c.classList.toggle("active", c === btn));
+    render();
+  });
+
+  elSearch.addEventListener("input", function () {
+    searchTerm = this.value.trim().toLowerCase();
+    render();
+  });
+
+  elMsg.addEventListener("input", saveMsg);
+  elUseName.addEventListener("change", function () { saveMsg(); render(); });
+
+  // ---------- Init ----------
+  load();
+  render();
+})();
+</script>
+</body>
+</html>
