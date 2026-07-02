@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MoatazOS Core v0.1</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◈</text></svg>" />
+<style>
+:root{
+  --bg:#0d0d0d;
+  --surface:#1a1a19;
+  --surface-2:#232321;
+  --line:rgba(255,255,255,0.08);
+  --line-strong:rgba(255,255,255,0.14);
+  --ink:#ffffff;
+  --ink-2:#c3c2b7;
+  --ink-3:#898781;
+  --accent:#3987e5;
+  --good:#0ca30c;
+  --warn:#fab219;
+  --serious:#ec835a;
+  --crit:#d03b3b;
+  --radius:10px;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{color-scheme:dark}
+body{
+  background:var(--bg);color:var(--ink);
+  font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:rgba(57,135,229,.35)}
+a{color:var(--accent);text-decoration:none}
+
+/* ---------- layout ---------- */
+.app{display:grid;grid-template-columns:224px 1fr;min-height:100dvh}
+.side{
+  border-right:1px solid var(--line);padding:20px 14px;
+  display:flex;flex-direction:column;gap:4px;
+  position:sticky;top:0;height:100dvh;
+}
+.logo{display:flex;align-items:center;gap:10px;padding:4px 10px 18px}
+.logo .mark{
+  width:30px;height:30px;border-radius:8px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#1c5cab,#3987e5);font-size:15px;color:#fff;
+}
+.logo b{font-size:14px;letter-spacing:.02em}
+.logo small{display:block;font:10px var(--mono);color:var(--ink-3);letter-spacing:.12em}
+.nav-item{
+  display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:8px;
+  color:var(--ink-2);cursor:pointer;border:1px solid transparent;font-size:13.5px;
+  background:none;width:100%;text-align:left;font-family:inherit;
+}
+.nav-item svg{width:17px;height:17px;flex:none;opacity:.75}
+.nav-item:hover{background:var(--surface);color:var(--ink)}
+.nav-item.on{background:var(--surface);border-color:var(--line);color:var(--ink)}
+.nav-item.on svg{opacity:1;stroke:var(--accent)}
+.side .ver{
+  margin-top:auto;padding:12px 10px;border-top:1px solid var(--line);
+  font:10.5px var(--mono);color:var(--ink-3);letter-spacing:.08em;
+}
+main{padding:26px 28px 90px;max-width:1060px;width:100%}
+
+/* mobile tab bar */
+.tabbar{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:40;
+  background:rgba(13,13,13,.92);backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);
+  grid-template-columns:repeat(7,1fr);
+  padding:6px 2px calc(6px + env(safe-area-inset-bottom));
+}
+.tab{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  color:var(--ink-3);font-size:8.5px;letter-spacing:.04em;text-transform:uppercase;
+  background:none;border:0;padding:4px 0;cursor:pointer;font-family:inherit;
+}
+.tab svg{width:19px;height:19px}
+.tab.on{color:var(--accent)}
+@media(max-width:840px){
+  .app{grid-template-columns:1fr}
+  .side{display:none}
+  .tabbar{display:grid}
+  main{padding:18px 14px 96px}
+}
+
+/* ---------- typography / page chrome ---------- */
+.ph{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.ph h1{font-size:19px;font-weight:650;letter-spacing:.01em}
+.ph .sub{color:var(--ink-3);font-size:12.5px;margin-top:2px}
+.kicker{
+  font:10.5px var(--mono);letter-spacing:.14em;color:var(--ink-3);
+  text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;
+}
+.kicker::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ---------- panels, tiles, rows ---------- */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+@media(max-width:840px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px 14px 12px;cursor:pointer;text-align:left;font-family:inherit;color:var(--ink);
+  transition:border-color .15s;
+}
+.tile:hover{border-color:var(--line-strong)}
+.tile .tl{font:10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.tile .tv{font-size:27px;font-weight:650;margin-top:6px;line-height:1}
+.tile .ts{font-size:11px;color:var(--ink-3);margin-top:6px}
+.tile.alert .tv{color:var(--warn)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:840px){.grid2{grid-template-columns:1fr}}
+
+.row{
+  display:flex;gap:12px;align-items:flex-start;justify-content:space-between;
+  padding:12px 2px;border-top:1px solid var(--line);
+}
+.row:first-of-type{border-top:0}
+.row .rt{font-weight:550;font-size:13.5px;word-break:break-word}
+.row .rm{font-size:11.5px;color:var(--ink-3);margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+.row .rx{font-size:12px;color:var(--ink-2);margin-top:5px;word-break:break-word}
+.row .re{display:flex;gap:6px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end;max-width:46%}
+.rid{font:10px var(--mono);color:var(--ink-3);letter-spacing:.05em}
+.empty{color:var(--ink-3);font-size:12.5px;padding:14px 2px;font-style:italic}
+.overdue{color:var(--crit)}
+
+/* ---------- pills / tags ---------- */
+.pill{
+  display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:99px;
+  font-size:10.5px;font-weight:600;letter-spacing:.04em;white-space:nowrap;
+}
+.pill::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+.pl-muted{color:var(--ink-2);background:rgba(255,255,255,.06)}
+.pl-accent{color:#7db4f0;background:rgba(57,135,229,.14)}
+.pl-good{color:#3ecf3e;background:rgba(12,163,12,.14)}
+.pl-warn{color:var(--warn);background:rgba(250,178,25,.12)}
+.pl-serious{color:var(--serious);background:rgba(236,131,90,.13)}
+.pl-crit{color:#eb6a6a;background:rgba(208,59,59,.15)}
+.tag{
+  display:inline-block;padding:1px 7px;border-radius:5px;border:1px solid var(--line-strong);
+  font:10px var(--mono);letter-spacing:.06em;color:var(--ink-2);text-transform:uppercase;
+}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:8px;
+  border:1px solid var(--line-strong);background:var(--surface-2);color:var(--ink);
+  font:600 12.5px system-ui,-apple-system,"Segoe UI",sans-serif;cursor:pointer;white-space:nowrap;
+}
+.btn:hover{border-color:rgba(255,255,255,.25)}
+.btn-pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-pri:hover{background:#4a92e8}
+.btn-ghost{background:none;border-color:transparent;color:var(--ink-2)}
+.btn-ghost:hover{color:var(--ink);border-color:var(--line-strong)}
+.btn-sm{padding:4px 9px;font-size:11.5px;border-radius:7px}
+.btn-danger{color:#eb6a6a}
+.iconbtn{
+  background:none;border:0;color:var(--ink-3);cursor:pointer;padding:4px 5px;border-radius:6px;
+  font-size:13px;line-height:1;font-family:inherit;
+}
+.iconbtn:hover{color:var(--ink);background:var(--surface-2)}
+
+/* ---------- forms ---------- */
+form.editor{background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius);padding:18px;margin-bottom:18px}
+form.editor h2{font-size:14px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+form.editor h2 .rid{font-size:10px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.fgrid{grid-template-columns:1fr}}
+.f{display:flex;flex-direction:column;gap:5px}
+.f.wide{grid-column:1/-1}
+.fl{font:10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+input[type=text],input[type=date],select,textarea{
+  background:var(--bg);border:1px solid var(--line-strong);border-radius:8px;
+  color:var(--ink);padding:8px 10px;font:13.5px system-ui,-apple-system,"Segoe UI",sans-serif;width:100%;
+}
+textarea{min-height:64px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+select.quick{
+  width:auto;padding:3px 6px;font-size:11px;border-radius:6px;
+  background:var(--surface-2);border-color:var(--line-strong);color:var(--ink-2);
+}
+.rangewrap{display:flex;align-items:center;gap:10px}
+.rangewrap output{font:600 13px var(--mono);color:var(--accent);min-width:22px;text-align:right}
+input[type=range]{flex:1;accent-color:var(--accent);height:22px}
+.seg{display:flex;border:1px solid var(--line-strong);border-radius:8px;overflow:hidden;width:max-content}
+.seg label{position:relative;cursor:pointer}
+.seg input{position:absolute;opacity:0;inset:0}
+.seg span{display:block;padding:7px 16px;font-size:12.5px;font-weight:600;color:var(--ink-3)}
+.seg input:checked + span{background:var(--accent);color:#fff}
+.factions{display:flex;gap:8px;margin-top:16px}
+
+/* filter chips */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.chip{
+  padding:4px 11px;border-radius:99px;border:1px solid var(--line-strong);background:none;
+  color:var(--ink-2);font:600 11.5px system-ui,sans-serif;cursor:pointer;font-family:inherit;
+}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* laws / changelog */
+.law{display:flex;gap:14px;padding:11px 2px;border-top:1px solid var(--line)}
+.law:first-of-type{border-top:0}
+.law .n{font:600 11px var(--mono);color:var(--accent);letter-spacing:.08em;flex:none;padding-top:2px}
+.law p{font-size:13.5px;color:var(--ink-2)}
+.logrow{display:flex;gap:14px;padding:10px 2px;border-top:1px solid var(--line);font-size:12.5px}
+.logrow:first-of-type{border-top:0}
+.logrow .lv{font:600 11px var(--mono);color:var(--ink);flex:none;padding-top:1px}
+.logrow .ld{color:var(--ink-3);font:11px var(--mono);flex:none;padding-top:1px}
+.logrow ul{list-style:none;color:var(--ink-2)}
+.logrow li::before{content:"— "}
+
+details.fold{margin-top:14px}
+details.fold summary{
+  cursor:pointer;font:10.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);padding:6px 0;list-style:none;
+}
+details.fold summary::before{content:"▸ "}
+details.fold[open] summary::before{content:"▾ "}
+
+/* toast */
+#toast{
+  position:fixed;left:50%;bottom:84px;transform:translateX(-50%) translateY(20px);
+  background:var(--surface-2);border:1px solid var(--line-strong);border-radius:10px;
+  padding:10px 16px;font-size:12.5px;color:var(--ink);opacity:0;pointer-events:none;
+  transition:.25s;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,.5);max-width:90vw;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.footline{
+  margin-top:22px;padding-top:14px;border-top:1px solid var(--line);
+  font:10.5px var(--mono);letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase;
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="side">
+    <div class="logo">
+      <div class="mark">◈</div>
+      <div><b>MoatazOS</b><small>CORE&nbsp;v0.1</small></div>
+    </div>
+    <nav id="sidenav"></nav>
+    <div class="ver">SYS&nbsp;·&nbsp;MOATAZOS&nbsp;CORE&nbsp;v0.1<br/>STATUS&nbsp;·&nbsp;OPERATIONAL</div>
+  </aside>
+  <main id="main"></main>
+</div>
+<nav class="tabbar" id="tabbar"></nav>
+<div id="toast"></div>
+
+<script>
+"use strict";
+
+/* ================= constants ================= */
+const APP_NAME = "MoatazOS Core";
+const APP_VERSION = "v0.1";
+const DB_KEY = "moatazos-core-v1";
+
+const DOMAINS = ["Sales","Performance","Relationships","Business","Finance","Learning","Health","Personal"];
+const SIGNAL_TYPES = ["Goal","Problem","Emotion","KPI","Pain","Opportunity","Habit","Idea","Client Signal","Risk"];
+const PRIORITIES = ["Low","Medium","High","Critical"];
+const TASK_STATUSES = ["Not Started","In Progress","Done","Blocked"];
+const DECISION_STATUSES = ["Draft","Approved","Rejected","Parked"];
+const WISDOM_STATUSES = ["Draft","Testing","Validated","Retired"];
+const ORIGINS = ["Signal","Decision","Reflection"];
+
+const PRIORITY_W = {Critical:4, High:3, Medium:2, Low:1};
+const PILL = {
+  // priority
+  Low:"pl-muted", Medium:"pl-warn", High:"pl-serious", Critical:"pl-crit",
+  // task status
+  "Not Started":"pl-muted", "In Progress":"pl-accent", Done:"pl-good", Blocked:"pl-crit",
+  // decision status
+  Draft:"pl-muted", Approved:"pl-good", Rejected:"pl-crit", Parked:"pl-warn",
+  // wisdom status
+  Testing:"pl-accent", Validated:"pl-good", Retired:"pl-muted",
+};
+
+const LAWS = [
+  "Human capability should compound instead of reset.",
+  "MoatazOS exists to elevate, never imitate.",
+  "Every meaningful experience must either refine wisdom or be intentionally discarded.",
+  "Experiences are temporary. Principles endure.",
+  "The quality of a person's life is constrained by the quality of their models of reality.",
+  "Wisdom grows only when identity is willing to be updated by reality.",
+  "Confidence should be grounded in the quality of the process, not the certainty of the outcome.",
+  "Wisdom must be refined from reality, not emotion.",
+];
+
+/* ================= store ================= */
+let db;
+function seedDB(){
+  return {
+    signals:[], decisions:[], tasks:[], reflections:[], wisdom:[],
+    versions:[{
+      version:"MoatazOS Core v0.1",
+      date:new Date().toISOString().slice(0,10),
+      changes:[
+        "System initialized.",
+        "Signal Capture, Decision Engine, Execution Queue online.",
+        "Reflection Engine and Wisdom Library online.",
+        "Laws 1–8 loaded into system memory.",
+      ],
+    }],
+  };
+}
+function loadDB(){
+  try{
+    const raw = localStorage.getItem(DB_KEY);
+    if(raw){
+      const d = JSON.parse(raw);
+      const base = seedDB();
+      for(const k of Object.keys(base)) if(!Array.isArray(d[k])) d[k] = base[k];
+      return d;
+    }
+  }catch(e){ console.warn("DB load failed, reseeding.", e); }
+  return seedDB();
+}
+function save(){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const byId = (arr,id) => arr.find(x => x.id === id);
+
+/* ================= helpers ================= */
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const short = (s,n=64) => { s = String(s ?? ""); return s.length > n ? s.slice(0,n-1) + "…" : s; };
+const sid = (prefix,id) => `${prefix}-${String(id).slice(-4).toUpperCase()}`;
+const todayISO = () => new Date().toISOString().slice(0,10);
+function fmtD(iso){
+  if(!iso) return "";
+  const d = new Date(iso + (iso.length === 10 ? "T00:00" : ""));
+  return d.toLocaleDateString(undefined,{month:"short",day:"numeric"});
+}
+const isOverdue = t => t.dueDate && t.dueDate < todayISO() && t.status !== "Done";
+const pill = (text, cls) => `<span class="pill ${cls || PILL[text] || "pl-muted"}">${esc(text)}</span>`;
+const tag = t => t ? `<span class="tag">${esc(t)}</span>` : "";
+
+function toast(msg){
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove("show"), 2600);
+}
+
+/* form field builders */
+const F = {
+  text:(name,label,val="",req=false,wide=false)=>`<div class="f${wide?" wide":""}"><span class="fl">${label}</span><input type="text" name="${name}" value="${esc(val)}" ${req?"required":""}></div>`,
+  area:(name,label,val="",req=false,ph="")=>`<div class="f wide"><span class="fl">${label}</span><textarea name="${name}" placeholder="${esc(ph)}" ${req?"required":""}>${esc(val)}</textarea></div>`,
+  date:(name,label,val="")=>`<div class="f"><span class="fl">${label}</span><input type="date" name="${name}" value="${esc(val)}"></div>`,
+  select:(name,label,opts,val,wide=false)=>`<div class="f${wide?" wide":""}"><span class="fl">${label}</span><select name="${name}">${
+    opts.map(o=>{const[v,t]=Array.isArray(o)?o:[o,o];return `<option value="${esc(v)}"${v===val?" selected":""}>${esc(t)}</option>`}).join("")
+  }</select></div>`,
+  range:(name,label,val=5)=>`<div class="f"><span class="fl">${label}</span><div class="rangewrap"><input type="range" name="${name}" min="1" max="10" step="1" value="${val}"><output>${val}</output></div></div>`,
+  yesno:(name,label,val)=>`<div class="f"><span class="fl">${label}</span><div class="seg">
+    <label><input type="radio" name="${name}" value="yes"${val?" checked":""}><span>Yes</span></label>
+    <label><input type="radio" name="${name}" value="no"${!val?" checked":""}><span>No</span></label>
+  </div></div>`,
+  actions:(saveLabel)=>`<div class="factions"><button type="submit" class="btn btn-pri">${saveLabel}</button><button type="button" class="btn btn-ghost" data-act="cancel-form">Cancel</button></div>`,
+};
+
+/* ================= derived queries ================= */
+const activeSignals = () => db.signals.filter(s => s.status === "active");
+const pendingDecisions = () => db.decisions.filter(d => d.status === "Draft");
+const openTasks = () => db.tasks.filter(t => t.status !== "Done");
+const hasReflection = (type,id) => db.reflections.some(r => r.sourceType === type && r.sourceId === id);
+
+function reflectionDue(){
+  const due = [];
+  for(const t of db.tasks)
+    if(t.status === "Done" && !hasReflection("task",t.id))
+      due.push({kind:"task", item:t, label:t.name});
+  for(const d of db.decisions){
+    if(hasReflection("decision",d.id)) continue;
+    const tasks = db.tasks.filter(t => t.decisionId === d.id);
+    const completed = d.status === "Rejected" ||
+      (d.status === "Approved" && tasks.length > 0 && tasks.every(t => t.status === "Done"));
+    if(completed) due.push({kind:"decision", item:d, label:d.title});
+  }
+  return due;
+}
+
+function top3(){
+  return openTasks()
+    .slice()
+    .sort((a,b) =>
+      (PRIORITY_W[b.priority]||0) - (PRIORITY_W[a.priority]||0) ||
+      (a.dueDate||"9999") .localeCompare(b.dueDate||"9999") ||
+      a.createdAt.localeCompare(b.createdAt))
+    .slice(0,3);
+}
+
+/* ================= UI state & routing ================= */
+const ROUTES = [
+  ["dashboard","Dashboard"],
+  ["signals","Signals"],
+  ["decisions","Decisions"],
+  ["queue","Queue"],
+  ["reflect","Reflect"],
+  ["wisdom","Wisdom"],
+  ["system","System"],
+];
+const ICONS = {
+  dashboard:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>',
+  signals:'<polyline points="2 12 6 12 9 5 14 19 17 12 22 12"/>',
+  decisions:'<line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>',
+  queue:'<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+  reflect:'<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>',
+  wisdom:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  system:'<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
+};
+const svg = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[k]}</svg>`;
+
+/* transient UI state (cleared on page change) */
+let ui = { form:null, filter:{} };
+
+function page(){
+  const h = location.hash.replace(/^#\/?/,"");
+  return ROUTES.some(([r]) => r === h) ? h : "dashboard";
+}
+function go(p){ if(page() === p){ ui.form = null; render(); } else location.hash = "#/" + p; }
+
+/* ================= list row builders ================= */
+function signalRow(s, {context=""}={}){
+  const action = s.requiresAction ? pill("ACTION REQ","pl-warn") : "";
+  const flow = s.status === "active"
+    ? `<button class="btn btn-sm" data-act="signal-to-decision" data-id="${s.id}">→ Decision</button>`
+    : pill(s.status === "converted" ? "Converted" : "Archived", s.status === "converted" ? "pl-accent" : "pl-muted");
+  const manage = context === "dash" ? "" : `
+      <button class="iconbtn" title="Edit" data-act="edit-signal" data-id="${s.id}">✎</button>
+      ${s.status === "active" ? `<button class="iconbtn" title="Archive" data-act="archive-signal" data-id="${s.id}">⊘</button>` : ""}
+      <button class="iconbtn btn-danger" title="Delete" data-act="del-signal" data-id="${s.id}">✕</button>`;
+  return `<div class="row">
+    <div>
+      <div class="rt">${esc(short(s.raw,110))}</div>
+      <div class="rm">
+        <span class="rid">${sid("SIG",s.id)}</span>
+        ${tag(s.domain)} ${tag(s.type)}
+        <span class="rid">U${s.urgency} · I${s.importance} · C${s.confidence}</span>
+        <span>${fmtD(s.createdAt)}</span>
+      </div>
+      ${s.notes ? `<div class="rx">${esc(short(s.notes,140))}</div>` : ""}
+    </div>
+    <div class="re">${action}${flow}${manage}</div>
+  </div>`;
+}
+
+function decisionRow(d, {context=""}={}){
+  const signal = d.signalId ? byId(db.signals, d.signalId) : null;
+  const quick = context === "dash"
+    ? pill(d.status)
+    : `<select class="quick" data-quick="decision-status" data-id="${d.id}">${
+        DECISION_STATUSES.map(s=>`<option${s===d.status?" selected":""}>${s}</option>`).join("")}</select>`;
+  const flows = context === "dash" ? "" : `
+      ${d.status === "Approved" ? `<button class="btn btn-sm" data-act="decision-to-task" data-id="${d.id}">+ Task</button>` : ""}
+      ${(d.status === "Approved" || d.status === "Rejected") && !hasReflection("decision",d.id)
+        ? `<button class="btn btn-sm" data-act="reflect-on" data-kind="decision" data-id="${d.id}">Reflect</button>` : ""}
+      <button class="iconbtn" title="Edit" data-act="edit-decision" data-id="${d.id}">✎</button>
+      <button class="iconbtn btn-danger" title="Delete" data-act="del-decision" data-id="${d.id}">✕</button>`;
+  return `<div class="row">
+    <div>
+      <div class="rt">${esc(d.title)}</div>
+      <div class="rm">
+        <span class="rid">${sid("DEC",d.id)}</span>
+        ${tag(d.domain)}
+        ${signal ? `<span>⌁ ${esc(short(signal.raw,34))}</span>` : ""}
+        <span class="rid">C${d.confidence}</span>
+        ${d.deadline ? `<span class="${d.deadline < todayISO() && d.status === "Draft" ? "overdue" : ""}">due ${fmtD(d.deadline)}</span>` : ""}
+      </div>
+      ${d.recommended ? `<div class="rx">▸ ${esc(short(d.recommended,140))}</div>` : ""}
+    </div>
+    <div class="re">${quick}${flows}</div>
+  </div>`;
+}
+
+function taskRow(t, {context=""}={}){
+  const dec = t.decisionId ? byId(db.decisions, t.decisionId) : null;
+  const quick = context === "dash"
+    ? pill(t.status)
+    : `<select class="quick" data-quick="task-status" data-id="${t.id}">${
+        TASK_STATUSES.map(s=>`<option${s===t.status?" selected":""}>${s}</option>`).join("")}</select>`;
+  const flows = context === "dash" ? "" : `
+      ${t.status === "Done" && !hasReflection("task",t.id)
+        ? `<button class="btn btn-sm" data-act="reflect-on" data-kind="task" data-id="${t.id}">Reflect</button>` : ""}
+      <button class="iconbtn" title="Edit" data-act="edit-task" data-id="${t.id}">✎</button>
+      <button class="iconbtn btn-danger" title="Delete" data-act="del-task" data-id="${t.id}">✕</button>`;
+  return `<div class="row">
+    <div>
+      <div class="rt">${esc(t.name)}</div>
+      <div class="rm">
+        <span class="rid">${sid("TSK",t.id)}</span>
+        ${tag(t.domain)}
+        ${dec ? `<span>⑂ ${esc(short(dec.title,34))}</span>` : ""}
+        ${t.dueDate ? `<span class="${isOverdue(t) ? "overdue" : ""}">due ${fmtD(t.dueDate)}${isOverdue(t) ? " · OVERDUE" : ""}</span>` : ""}
+      </div>
+      ${t.microAction ? `<div class="rx">↳ next: ${esc(short(t.microAction,120))}</div>` : ""}
+    </div>
+    <div class="re">${pill(t.priority)}${quick}${flows}</div>
+  </div>`;
+}
+
+function reflectionRow(r){
+  const src = r.sourceType === "task" ? byId(db.tasks, r.sourceId) : byId(db.decisions, r.sourceId);
+  const srcLabel = src ? (r.sourceType === "task" ? src.name : src.title) : "(removed)";
+  return `<div class="row">
+    <div>
+      <div class="rt">${esc(short(r.happened,110))}</div>
+      <div class="rm">
+        <span class="rid">${sid("REF",r.id)}</span>
+        <span>${r.sourceType === "task" ? "⑃ task" : "⑂ decision"} · ${esc(short(srcLabel,40))}</span>
+        <span class="rid">Q${r.quality}</span>
+        ${r.memoryChange ? pill("MEMORY UPDATE","pl-accent") : ""}
+        <span>${fmtD(r.createdAt)}</span>
+      </div>
+      ${r.principle ? `<div class="rx">◈ ${esc(short(r.principle,140))}</div>` : ""}
+    </div>
+    <div class="re">
+      ${r.principle && !db.wisdom.some(w => w.reflectionId === r.id)
+        ? `<button class="btn btn-sm" data-act="reflection-to-wisdom" data-id="${r.id}">→ Wisdom</button>` : ""}
+      <button class="iconbtn" title="Edit" data-act="edit-reflection" data-id="${r.id}">✎</button>
+      <button class="iconbtn btn-danger" title="Delete" data-act="del-reflection" data-id="${r.id}">✕</button>
+    </div>
+  </div>`;
+}
+
+function wisdomRow(w){
+  return `<div class="row">
+    <div>
+      <div class="rt">${esc(w.title)}</div>
+      <div class="rm">
+        <span class="rid">${sid("WIS",w.id)}</span>
+        ${tag(w.domain)} <span>origin: ${esc(w.origin)}</span>
+        <span class="rid">C${w.confidence}</span>
+        <span>${fmtD(w.createdAt)}</span>
+      </div>
+      <div class="rx">${esc(short(w.principle,180))}</div>
+    </div>
+    <div class="re">
+      <select class="quick" data-quick="wisdom-status" data-id="${w.id}">${
+        WISDOM_STATUSES.map(s=>`<option${s===w.status?" selected":""}>${s}</option>`).join("")}</select>
+      <button class="iconbtn" title="Edit" data-act="edit-wisdom" data-id="${w.id}">✎</button>
+      <button class="iconbtn btn-danger" title="Delete" data-act="del-wisdom" data-id="${w.id}">✕</button>
+    </div>
+  </div>`;
+}
+
+/* ================= forms ================= */
+function signalForm(s={}, prefill={}){
+  const v = {...{raw:"",domain:DOMAINS[0],type:SIGNAL_TYPES[0],urgency:5,importance:5,confidence:5,requiresAction:false,notes:""}, ...s, ...prefill};
+  return `<form class="editor" data-form="signal" data-id="${s.id||""}">
+    <h2>${s.id ? `Edit Signal <span class="rid">${sid("SIG",s.id)}</span>` : "Capture Signal"}</h2>
+    <div class="fgrid">
+      ${F.area("raw","Raw input / note",v.raw,true,"What happened? What did you notice?")}
+      ${F.select("domain","Domain",DOMAINS,v.domain)}
+      ${F.select("type","Type",SIGNAL_TYPES,v.type)}
+      ${F.range("urgency","Urgency",v.urgency)}
+      ${F.range("importance","Importance",v.importance)}
+      ${F.range("confidence","Confidence",v.confidence)}
+      ${F.yesno("requiresAction","Requires action",v.requiresAction)}
+      ${F.area("notes","Notes",v.notes)}
+    </div>
+    ${F.actions(s.id ? "Update Signal" : "Save Signal")}
+  </form>`;
+}
+
+function decisionForm(d={}, prefill={}){
+  const v = {...{title:"",signalId:"",domain:DOMAINS[0],options:"",recommended:"",reasoning:"",upside:"",risk:"",confidence:5,deadline:"",status:"Draft"}, ...d, ...prefill};
+  const signalOpts = [["","— none —"], ...db.signals.map(s => [s.id, `${sid("SIG",s.id)} · ${short(s.raw,48)}`])];
+  return `<form class="editor" data-form="decision" data-id="${d.id||""}">
+    <h2>${d.id ? `Edit Decision <span class="rid">${sid("DEC",d.id)}</span>` : "New Decision"}</h2>
+    <div class="fgrid">
+      ${F.text("title","Decision title",v.title,true,true)}
+      ${F.select("signalId","Related signal",signalOpts,v.signalId)}
+      ${F.select("domain","Domain",DOMAINS,v.domain)}
+      ${F.area("options","Options considered",v.options,false,"Option A… / Option B… / Do nothing…")}
+      ${F.area("recommended","Recommended decision",v.recommended)}
+      ${F.area("reasoning","Reasoning",v.reasoning)}
+      ${F.area("upside","Expected upside",v.upside)}
+      ${F.area("risk","Expected risk",v.risk)}
+      ${F.range("confidence","Confidence",v.confidence)}
+      ${F.date("deadline","Deadline",v.deadline)}
+      ${F.select("status","Final decision status",DECISION_STATUSES,v.status)}
+    </div>
+    ${F.actions(d.id ? "Update Decision" : "Save Decision")}
+  </form>`;
+}
+
+function taskForm(t={}, prefill={}){
+  const v = {...{name:"",decisionId:"",domain:DOMAINS[0],priority:"Medium",status:"Not Started",dueDate:"",microAction:"",notes:""}, ...t, ...prefill};
+  const decOpts = [["","— none —"], ...db.decisions.map(d => [d.id, `${sid("DEC",d.id)} · ${short(d.title,48)}`])];
+  return `<form class="editor" data-form="task" data-id="${t.id||""}">
+    <h2>${t.id ? `Edit Task <span class="rid">${sid("TSK",t.id)}</span>` : "New Task"}</h2>
+    <div class="fgrid">
+      ${F.text("name","Task name",v.name,true,true)}
+      ${F.select("decisionId","Related decision",decOpts,v.decisionId)}
+      ${F.select("domain","Domain",DOMAINS,v.domain)}
+      ${F.select("priority","Priority",PRIORITIES,v.priority)}
+      ${F.select("status","Status",TASK_STATUSES,v.status)}
+      ${F.date("dueDate","Due date",v.dueDate)}
+      ${F.area("microAction","Next micro-action",v.microAction,false,"The smallest next physical step")}
+      ${F.area("notes","Notes",v.notes)}
+    </div>
+    ${F.actions(t.id ? "Update Task" : "Save Task")}
+  </form>`;
+}
+
+function reflectionForm(r={}, prefill={}){
+  const v = {...{sourceType:"task",sourceId:"",happened:"",expected:"",surprised:"",cause:"",wrongAssumption:"",principle:"",memoryChange:false,quality:5}, ...r, ...prefill};
+  const srcOpts = [
+    ...db.tasks.filter(t => t.status === "Done" || t.id === v.sourceId).map(t => [`task:${t.id}`, `TASK · ${short(t.name,44)}`]),
+    ...db.decisions.filter(d => d.status === "Approved" || d.status === "Rejected" || d.id === v.sourceId).map(d => [`decision:${d.id}`, `DECISION · ${short(d.title,44)}`]),
+  ];
+  if(!srcOpts.length) srcOpts.push(["","— nothing completed yet —"]);
+  const srcVal = v.sourceId ? `${v.sourceType}:${v.sourceId}` : srcOpts[0][0];
+  return `<form class="editor" data-form="reflection" data-id="${r.id||""}">
+    <h2>${r.id ? `Edit Reflection <span class="rid">${sid("REF",r.id)}</span>` : "New Reflection"}</h2>
+    <div class="fgrid">
+      ${F.select("source","Completed task / decision",srcOpts,srcVal,true)}
+      ${F.area("happened","What happened?",v.happened,true)}
+      ${F.area("expected","What did I expect?",v.expected)}
+      ${F.area("surprised","What surprised me?",v.surprised)}
+      ${F.area("cause","What caused the outcome?",v.cause)}
+      ${F.area("wrongAssumption","What assumption was wrong?",v.wrongAssumption)}
+      ${F.area("principle","What principle or rule should survive?",v.principle)}
+      ${F.yesno("memoryChange","Should the system memory change?",v.memoryChange)}
+      ${F.range("quality","Lesson quality score",v.quality)}
+    </div>
+    ${F.actions(r.id ? "Update Reflection" : "Save Reflection")}
+  </form>`;
+}
+
+function wisdomForm(w={}, prefill={}){
+  const v = {...{title:"",domain:DOMAINS[0],origin:"Reflection",principle:"",evidenceFor:"",evidenceAgainst:"",confidence:5,status:"Draft",reflectionId:""}, ...w, ...prefill};
+  return `<form class="editor" data-form="wisdom" data-id="${w.id||""}" data-reflection="${v.reflectionId||""}">
+    <h2>${w.id ? `Edit Principle <span class="rid">${sid("WIS",w.id)}</span>` : "New Principle"}</h2>
+    <div class="fgrid">
+      ${F.text("title","Principle title",v.title,true,true)}
+      ${F.select("domain","Domain",DOMAINS,v.domain)}
+      ${F.select("origin","Origin",ORIGINS,v.origin)}
+      ${F.area("principle","Principle",v.principle,true)}
+      ${F.area("evidenceFor","Evidence supporting it",v.evidenceFor)}
+      ${F.area("evidenceAgainst","Evidence against it",v.evidenceAgainst)}
+      ${F.range("confidence","Confidence",v.confidence)}
+      ${F.select("status","Status",WISDOM_STATUSES,v.status)}
+    </div>
+    ${F.actions(w.id ? "Update Principle" : "Save Principle")}
+  </form>`;
+}
+
+/* ================= views ================= */
+function viewDashboard(){
+  const t3 = top3();
+  const sig = activeSignals();
+  const pend = pendingDecisions();
+  const due = reflectionDue();
+  const latest = arr => arr.slice().sort((a,b) => b.createdAt.localeCompare(a.createdAt)).slice(0,3);
+  return `
+  <header class="ph">
+    <div><h1>Command Deck</h1><p class="sub">${new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})} · all systems nominal</p></div>
+    <button class="btn btn-pri" data-act="quick-capture">+ Capture Signal</button>
+  </header>
+
+  <div class="tiles">
+    <button class="tile" data-act="nav" data-to="signals"><div class="tl">Active Signals</div><div class="tv">${sig.length}</div><div class="ts">awaiting routing</div></button>
+    <button class="tile" data-act="nav" data-to="decisions"><div class="tl">Pending Decisions</div><div class="tv">${pend.length}</div><div class="ts">in draft</div></button>
+    <button class="tile" data-act="nav" data-to="queue"><div class="tl">Execution Queue</div><div class="tv">${openTasks().length}</div><div class="ts">open tasks</div></button>
+    <button class="tile ${due.length ? "alert" : ""}" data-act="nav" data-to="reflect"><div class="tl">Reflection Due</div><div class="tv">${due.length}</div><div class="ts">lessons unextracted</div></button>
+  </div>
+
+  <section class="panel">
+    <div class="kicker">Today's Top 3 Priorities</div>
+    ${t3.length ? t3.map(t => taskRow(t,{context:"dash"})).join("") : `<div class="empty">Queue clear. Approve a decision and create tasks to load priorities.</div>`}
+  </section>
+
+  <div class="grid2">
+    <section class="panel">
+      <div class="kicker">Active Signals</div>
+      ${sig.length ? latest(sig).map(s => signalRow(s,{context:"dash"})).join("") : `<div class="empty">No live signals. Capture what happened today.</div>`}
+    </section>
+    <section class="panel">
+      <div class="kicker">Pending Decisions</div>
+      ${pend.length ? latest(pend).map(d => decisionRow(d,{context:"dash"})).join("") : `<div class="empty">No drafts awaiting judgment.</div>`}
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="kicker">Reflection Due</div>
+    ${due.length
+      ? due.slice(0,4).map(x => `<div class="row">
+          <div><div class="rt">${esc(short(x.label,90))}</div>
+          <div class="rm"><span class="rid">${x.kind.toUpperCase()} COMPLETE</span><span>lesson not yet extracted</span></div></div>
+          <div class="re"><button class="btn btn-sm" data-act="reflect-on" data-kind="${x.kind}" data-id="${x.item.id}">Reflect</button></div>
+        </div>`).join("")
+      : `<div class="empty">Nothing owed to the Reflection Engine.</div>`}
+  </section>
+
+  <div class="footline"><span>SYSTEM VERSION · ${APP_NAME} ${APP_VERSION}</span><span>WISDOM BANK · ${db.wisdom.length} PRINCIPLES</span></div>`;
+}
+
+function viewSignals(){
+  const editing = ui.form && ui.form.kind === "signal";
+  const act = activeSignals().slice().sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+  const done = db.signals.filter(s => s.status !== "active").slice().sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+  return `
+  <header class="ph"><div><h1>Signal Capture</h1><p class="sub">Route raw inputs from the day into the system</p></div></header>
+  ${editing ? signalForm(ui.form.id ? byId(db.signals, ui.form.id) : {}, ui.form.prefill) : signalForm()}
+  <section class="panel">
+    <div class="kicker">Active Signals · ${act.length}</div>
+    ${act.length ? act.map(s => signalRow(s)).join("") : `<div class="empty">No active signals.</div>`}
+    ${done.length ? `<details class="fold"><summary>Processed · ${done.length}</summary>${done.map(s => signalRow(s)).join("")}</details>` : ""}
+  </section>`;
+}
+
+function statusChips(key, statuses, counts){
+  const cur = ui.filter[key] || "All";
+  const all = ["All", ...statuses];
+  return `<div class="chips">${all.map(s =>
+    `<button class="chip ${s === cur ? "on" : ""}" data-act="filter" data-key="${key}" data-val="${s}">${s}${s === "All" ? "" : ` · ${counts[s]||0}`}</button>`).join("")}</div>`;
+}
+
+function viewDecisions(){
+  const editing = ui.form && ui.form.kind === "decision";
+  const cur = ui.filter.decisions || "All";
+  const counts = {}; db.decisions.forEach(d => counts[d.status] = (counts[d.status]||0)+1);
+  const list = db.decisions.filter(d => cur === "All" || d.status === cur)
+    .slice().sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+  return `
+  <header class="ph">
+    <div><h1>Decision Engine</h1><p class="sub">Convert signals into committed judgment</p></div>
+    <button class="btn btn-pri" data-act="new-decision">+ New Decision</button>
+  </header>
+  ${editing ? decisionForm(ui.form.id ? byId(db.decisions, ui.form.id) : {}, ui.form.prefill) : ""}
+  ${statusChips("decisions", DECISION_STATUSES, counts)}
+  <section class="panel">
+    ${list.length ? list.map(d => decisionRow(d)).join("") : `<div class="empty">No decisions here. Send a signal into the engine.</div>`}
+  </section>`;
+}
+
+function viewQueue(){
+  const editing = ui.form && ui.form.kind === "task";
+  const open = openTasks().slice().sort((a,b) =>
+    (PRIORITY_W[b.priority]||0) - (PRIORITY_W[a.priority]||0) ||
+    (a.dueDate||"9999").localeCompare(b.dueDate||"9999"));
+  const done = db.tasks.filter(t => t.status === "Done").slice().sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+  return `
+  <header class="ph">
+    <div><h1>Execution Queue</h1><p class="sub">Approved decisions become movement</p></div>
+    <button class="btn btn-pri" data-act="new-task">+ New Task</button>
+  </header>
+  ${editing ? taskForm(ui.form.id ? byId(db.tasks, ui.form.id) : {}, ui.form.prefill) : ""}
+  <section class="panel">
+    <div class="kicker">Open · ${open.length}</div>
+    ${open.length ? open.map(t => taskRow(t)).join("") : `<div class="empty">Queue is clear.</div>`}
+    ${done.length ? `<details class="fold"><summary>Done · ${done.length}</summary>${done.map(t => taskRow(t)).join("")}</details>` : ""}
+  </section>`;
+}
+
+function viewReflect(){
+  const editing = ui.form && ui.form.kind === "reflection";
+  const due = reflectionDue();
+  const list = db.reflections.slice().sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+  return `
+  <header class="ph">
+    <div><h1>Reflection Engine</h1><p class="sub">Every outcome must refine wisdom or be discarded</p></div>
+    <button class="btn btn-pri" data-act="new-reflection">+ New Reflection</button>
+  </header>
+  ${editing ? reflectionForm(ui.form.id ? byId(db.reflections, ui.form.id) : {}, ui.form.prefill) : ""}
+  ${due.length && !editing ? `<section class="panel">
+    <div class="kicker">Due · ${due.length}</div>
+    ${due.map(x => `<div class="row">
+      <div><div class="rt">${esc(short(x.label,90))}</div>
+      <div class="rm"><span class="rid">${x.kind.toUpperCase()} COMPLETE</span></div></div>
+      <div class="re"><button class="btn btn-sm" data-act="reflect-on" data-kind="${x.kind}" data-id="${x.item.id}">Reflect</button></div>
+    </div>`).join("")}
+  </section>` : ""}
+  <section class="panel">
+    <div class="kicker">Reflections · ${list.length}</div>
+    ${list.length ? list.map(reflectionRow).join("") : `<div class="empty">No reflections logged. Complete something, then extract the lesson.</div>`}
+  </section>`;
+}
+
+function viewWisdom(){
+  const editing = ui.form && ui.form.kind === "wisdom";
+  const cur = ui.filter.wisdom || "All";
+  const counts = {}; db.wisdom.forEach(w => counts[w.status] = (counts[w.status]||0)+1);
+  const list = db.wisdom.filter(w => cur === "All" || w.status === cur)
+    .slice().sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+  return `
+  <header class="ph">
+    <div><h1>Wisdom Library</h1><p class="sub">Experiences are temporary. Principles endure.</p></div>
+    <button class="btn btn-pri" data-act="new-wisdom">+ New Principle</button>
+  </header>
+  ${editing ? wisdomForm(ui.form.id ? byId(db.wisdom, ui.form.id) : {}, ui.form.prefill) : ""}
+  ${statusChips("wisdom", WISDOM_STATUSES, counts)}
+  <section class="panel">
+    ${list.length ? list.map(wisdomRow).join("") : `<div class="empty">The library is empty. Reflections are the raw ore.</div>`}
+  </section>`;
+}
+
+function viewSystem(){
+  const counts = [
+    ["Signals", db.signals.length], ["Decisions", db.decisions.length], ["Tasks", db.tasks.length],
+    ["Reflections", db.reflections.length], ["Principles", db.wisdom.length],
+  ];
+  return `
+  <header class="ph"><div><h1>System Settings</h1><p class="sub">Constitution, version, and memory controls</p></div></header>
+
+  <section class="panel">
+    <div class="kicker">Current Laws of MoatazOS</div>
+    ${LAWS.map((l,i) => `<div class="law"><span class="n">LAW ${String(i+1).padStart(2,"0")}</span><p>${esc(l)}</p></div>`).join("")}
+  </section>
+
+  <section class="panel">
+    <div class="kicker">System Version</div>
+    <div class="row"><div>
+      <div class="rt">${APP_NAME} ${APP_VERSION}</div>
+      <div class="rm">${counts.map(([k,v]) => `<span class="rid">${k.toUpperCase()} · ${v}</span>`).join("")}</div>
+    </div><div class="re">${pill("OPERATIONAL","pl-good")}</div></div>
+  </section>
+
+  <section class="panel">
+    <div class="kicker">Change Log</div>
+    ${db.versions.slice().reverse().map(v => `<div class="logrow">
+      <span class="lv">${esc(v.version)}</span><span class="ld">${esc(v.date)}</span>
+      <ul>${v.changes.map(c => `<li>${esc(c)}</li>`).join("")}</ul>
+    </div>`).join("")}
+  </section>
+
+  <section class="panel">
+    <div class="kicker">System Memory</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" data-act="export">⇩ Export Memory (JSON)</button>
+      <button class="btn" data-act="import">⇧ Import Memory</button>
+      <button class="btn btn-danger" data-act="reset">Reset System</button>
+      <input type="file" id="importfile" accept="application/json" hidden>
+    </div>
+  </section>`;
+}
+
+const VIEWS = {
+  dashboard:viewDashboard, signals:viewSignals, decisions:viewDecisions,
+  queue:viewQueue, reflect:viewReflect, wisdom:viewWisdom, system:viewSystem,
+};
+
+/* ================= render ================= */
+function render(){
+  const p = page();
+  document.getElementById("main").innerHTML = VIEWS[p]();
+  document.getElementById("sidenav").innerHTML = ROUTES.map(([r,label]) =>
+    `<button class="nav-item ${r === p ? "on" : ""}" data-act="nav" data-to="${r}">${svg(r)}${label}</button>`).join("");
+  document.getElementById("tabbar").innerHTML = ROUTES.map(([r,label]) =>
+    `<button class="tab ${r === p ? "on" : ""}" data-act="nav" data-to="${r}">${svg(r)}<span>${label}</span></button>`).join("");
+}
+
+window.addEventListener("hashchange", () => {
+  if(ui.form && ui.form.page !== page()) ui.form = null;
+  render(); window.scrollTo(0,0);
+});
+
+/* ================= actions ================= */
+function openForm(kind, id=null, prefill={}){
+  ui.form = {kind, id, prefill, page: page()};
+  render();
+  const f = document.querySelector("form.editor");
+  if(f){ f.scrollIntoView({behavior:"smooth", block:"start"}); const first = f.querySelector("textarea,input[type=text]"); if(first) first.focus(); }
+}
+
+function del(coll, id, label){
+  if(!confirm(`Delete this ${label}? This cannot be undone.`)) return;
+  db[coll] = db[coll].filter(x => x.id !== id);
+  save(); render(); toast(`${label[0].toUpperCase() + label.slice(1)} deleted.`);
+}
+
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-act]");
+  if(!el) return;
+  const id = el.dataset.id;
+  switch(el.dataset.act){
+    case "nav": go(el.dataset.to); break;
+    case "cancel-form": ui.form = null; render(); break;
+    case "filter": ui.filter[el.dataset.key] = el.dataset.val; render(); break;
+
+    case "quick-capture": location.hash = "#/signals"; break;
+
+    /* signals */
+    case "edit-signal": go("signals"); openForm("signal", id); break;
+    case "del-signal": del("signals", id, "signal"); break;
+    case "archive-signal": { const s = byId(db.signals,id); if(s){ s.status = "archived"; save(); render(); toast("Signal archived."); } break; }
+    case "signal-to-decision": {
+      const s = byId(db.signals, id);
+      go("decisions");
+      openForm("decision", null, {signalId:id, domain:s ? s.domain : DOMAINS[0], title:s ? short(s.raw,70) : "", confidence:s ? s.confidence : 5});
+      break;
+    }
+
+    /* decisions */
+    case "new-decision": openForm("decision"); break;
+    case "edit-decision": go("decisions"); openForm("decision", id); break;
+    case "del-decision": del("decisions", id, "decision"); break;
+    case "decision-to-task": {
+      const d = byId(db.decisions, id);
+      go("queue");
+      openForm("task", null, {decisionId:id, domain:d ? d.domain : DOMAINS[0], dueDate:d ? d.deadline : ""});
+      break;
+    }
+
+    /* tasks */
+    case "new-task": openForm("task"); break;
+    case "edit-task": go("queue"); openForm("task", id); break;
+    case "del-task": del("tasks", id, "task"); break;
+
+    /* reflections */
+    case "new-reflection": openForm("reflection"); break;
+    case "edit-reflection": go("reflect"); openForm("reflection", id); break;
+    case "del-reflection": del("reflections", id, "reflection"); break;
+    case "reflect-on": {
+      const kind = el.dataset.kind;
+      const src = kind === "task" ? byId(db.tasks,id) : byId(db.decisions,id);
+      go("reflect");
+      openForm("reflection", null, {sourceType:kind, sourceId:id,
+        expected: kind === "decision" && src ? src.upside : ""});
+      break;
+    }
+    case "reflection-to-wisdom": {
+      const r = byId(db.reflections, id);
+      const src = r ? (r.sourceType === "task" ? byId(db.tasks,r.sourceId) : byId(db.decisions,r.sourceId)) : null;
+      go("wisdom");
+      openForm("wisdom", null, {
+        origin:"Reflection", reflectionId:id,
+        principle:r ? r.principle : "",
+        title:r ? short(r.principle,60) : "",
+        domain:src ? src.domain : DOMAINS[0],
+        evidenceFor:r ? r.happened : "",
+        confidence:r ? r.quality : 5,
+      });
+      break;
+    }
+
+    /* wisdom */
+    case "new-wisdom": openForm("wisdom"); break;
+    case "edit-wisdom": go("wisdom"); openForm("wisdom", id); break;
+    case "del-wisdom": del("wisdom", id, "principle"); break;
+
+    /* system */
+    case "export": {
+      const blob = new Blob([JSON.stringify(db,null,2)], {type:"application/json"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `moatazos-memory-${todayISO()}.json`;
+      a.click(); URL.revokeObjectURL(a.href);
+      toast("System memory exported.");
+      break;
+    }
+    case "import": document.getElementById("importfile").click(); break;
+    case "reset": {
+      if(confirm("Reset MoatazOS? All signals, decisions, tasks, reflections and wisdom will be erased.") &&
+         confirm("Final confirmation — wipe system memory?")){
+        db = seedDB(); save(); render(); toast("System reset to factory state.");
+      }
+      break;
+    }
+  }
+});
+
+/* quick status selects */
+document.addEventListener("change", e => {
+  const el = e.target.closest("[data-quick]");
+  if(el){
+    const id = el.dataset.id, v = el.value;
+    if(el.dataset.quick === "task-status"){
+      const t = byId(db.tasks, id);
+      if(t){ t.status = v; if(v === "Done") t.completedAt = todayISO(); save(); render();
+        toast(v === "Done" ? "Task done — reflection is now due." : `Task → ${v}.`); }
+    } else if(el.dataset.quick === "decision-status"){
+      const d = byId(db.decisions, id);
+      if(d){ d.status = v; save(); render();
+        toast(v === "Approved" ? "Decision approved — create tasks to execute." : `Decision → ${v}.`); }
+    } else if(el.dataset.quick === "wisdom-status"){
+      const w = byId(db.wisdom, id);
+      if(w){ w.status = v; save(); render(); toast(`Principle → ${v}.`); }
+    }
+    return;
+  }
+  if(e.target.id === "importfile" && e.target.files[0]){
+    const fr = new FileReader();
+    fr.onload = () => {
+      try{
+        const d = JSON.parse(fr.result);
+        if(!d || !Array.isArray(d.signals)) throw new Error("bad shape");
+        const base = seedDB();
+        for(const k of Object.keys(base)) if(!Array.isArray(d[k])) d[k] = base[k];
+        db = d; save(); render(); toast("System memory imported.");
+      }catch{ toast("Import failed — not a valid MoatazOS memory file."); }
+    };
+    fr.readAsText(e.target.files[0]);
+    e.target.value = "";
+  }
+});
+
+/* live range value */
+document.addEventListener("input", e => {
+  if(e.target.type === "range"){
+    const out = e.target.parentElement.querySelector("output");
+    if(out) out.textContent = e.target.value;
+  }
+});
+
+/* ================= form submit ================= */
+document.addEventListener("submit", e => {
+  const f = e.target.closest("form[data-form]");
+  if(!f) return;
+  e.preventDefault();
+  const kind = f.dataset.form, id = f.dataset.id;
+  const fd = new FormData(f);
+  const g = n => (fd.get(n) ?? "").toString().trim();
+  const num = n => parseInt(fd.get(n),10) || 5;
+  const yes = n => fd.get(n) === "yes";
+  const now = new Date().toISOString();
+
+  if(kind === "signal"){
+    const data = {raw:g("raw"), domain:g("domain"), type:g("type"),
+      urgency:num("urgency"), importance:num("importance"), confidence:num("confidence"),
+      requiresAction:yes("requiresAction"), notes:g("notes")};
+    if(id){ Object.assign(byId(db.signals,id), data); toast("Signal updated."); }
+    else{ db.signals.push({id:uid(), status:"active", createdAt:now, ...data}); toast("Signal captured — now live."); }
+  }
+  else if(kind === "decision"){
+    const data = {title:g("title"), signalId:g("signalId"), domain:g("domain"),
+      options:g("options"), recommended:g("recommended"), reasoning:g("reasoning"),
+      upside:g("upside"), risk:g("risk"), confidence:num("confidence"),
+      deadline:g("deadline"), status:g("status")};
+    if(id){ Object.assign(byId(db.decisions,id), data); toast("Decision updated."); }
+    else{
+      db.decisions.push({id:uid(), createdAt:now, ...data});
+      if(data.signalId){ const s = byId(db.signals, data.signalId); if(s && s.status === "active") s.status = "converted"; }
+      toast(data.status === "Approved" ? "Decision approved — create tasks to execute." : "Decision saved.");
+    }
+  }
+  else if(kind === "task"){
+    const data = {name:g("name"), decisionId:g("decisionId"), domain:g("domain"),
+      priority:g("priority"), status:g("status"), dueDate:g("dueDate"),
+      microAction:g("microAction"), notes:g("notes")};
+    if(data.status === "Done") data.completedAt = todayISO();
+    if(id){ Object.assign(byId(db.tasks,id), data); toast("Task updated."); }
+    else{ db.tasks.push({id:uid(), createdAt:now, ...data}); toast("Task queued."); }
+  }
+  else if(kind === "reflection"){
+    const [sourceType, sourceId] = (g("source") || ":").split(":");
+    const data = {sourceType:sourceType || "task", sourceId:sourceId || "",
+      happened:g("happened"), expected:g("expected"), surprised:g("surprised"),
+      cause:g("cause"), wrongAssumption:g("wrongAssumption"), principle:g("principle"),
+      memoryChange:yes("memoryChange"), quality:num("quality")};
+    if(id){ Object.assign(byId(db.reflections,id), data); toast("Reflection updated."); }
+    else{ db.reflections.push({id:uid(), createdAt:now, ...data});
+      toast(data.principle ? "Reflection saved — a principle is ready for the library." : "Reflection saved."); }
+  }
+  else if(kind === "wisdom"){
+    const data = {title:g("title"), domain:g("domain"), origin:g("origin"),
+      principle:g("principle"), evidenceFor:g("evidenceFor"), evidenceAgainst:g("evidenceAgainst"),
+      confidence:num("confidence"), status:g("status")};
+    if(id){ Object.assign(byId(db.wisdom,id), data); toast("Principle updated."); }
+    else{ db.wisdom.push({id:uid(), createdAt:now, reflectionId:f.dataset.reflection || "", ...data});
+      toast("Principle banked. Experiences are temporary — this endures."); }
+  }
+
+  ui.form = null; save(); render(); window.scrollTo({top:0, behavior:"smooth"});
+});
+
+/* ================= boot ================= */
+db = loadDB();
+save();
+render();
+</script>
+</body>
+</html>
