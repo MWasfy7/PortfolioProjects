@@ -3,10 +3,86 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta http-equiv="refresh" content="0; url=whatsapp-outreach.html" />
-<title>WhatsApp Outreach</title>
+<title>Portfolio Projects</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◈</text></svg>" />
+<style>
+:root{
+  --bg:#0d0d0d; --surface:#1a1a19; --line:rgba(255,255,255,0.08);
+  --line-strong:rgba(255,255,255,0.14); --ink:#fff; --ink-2:#c3c2b7; --ink-3:#898781;
+  --accent:#3987e5; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{color-scheme:dark}
+body{
+  background:var(--bg);color:var(--ink);
+  font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  max-width:760px;margin:0 auto;padding:56px 20px 80px;
+}
+header{margin-bottom:36px}
+h1{font-size:24px;font-weight:650}
+header p{color:var(--ink-3);margin-top:4px}
+.kicker{
+  font:10.5px var(--mono);letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase;
+  margin:34px 0 12px;display:flex;align-items:center;gap:10px;
+}
+.kicker::after{content:"";flex:1;height:1px;background:var(--line)}
+a.card{
+  display:flex;gap:16px;align-items:flex-start;text-decoration:none;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:18px;margin-bottom:12px;transition:border-color .15s;
+}
+a.card:hover{border-color:var(--accent)}
+.card .icon{
+  width:40px;height:40px;flex:none;border-radius:10px;display:grid;place-items:center;
+  font-size:19px;background:linear-gradient(135deg,#1c5cab,#3987e5);
+}
+.card .icon.alt{background:linear-gradient(135deg,#0a6e46,#1baf7a)}
+.card b{font-size:15px}
+.card small{display:block;font:10px var(--mono);letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase;margin-top:1px}
+.card p{color:var(--ink-2);font-size:13px;margin-top:6px}
+ul.data{list-style:none}
+ul.data li{
+  padding:10px 2px;border-top:1px solid var(--line);color:var(--ink-2);font-size:13.5px;
+  display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+}
+ul.data li:first-child{border-top:0}
+ul.data .t{font:10px var(--mono);letter-spacing:.08em;color:var(--ink-3);text-transform:uppercase;white-space:nowrap;padding-top:3px}
+footer{margin-top:40px;font:10.5px var(--mono);letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase}
+</style>
 </head>
 <body>
-<p>Opening the app… if it doesn't load, <a href="whatsapp-outreach.html">tap here</a>.</p>
+<header>
+  <h1>Portfolio Projects</h1>
+  <p>Web apps and data analytics work.</p>
+</header>
+
+<div class="kicker">Web Apps</div>
+<a class="card" href="moatazos-core.html">
+  <div class="icon">◈</div>
+  <div>
+    <b>MoatazOS Core</b><small>v0.1 · Decision Operating System</small>
+    <p>Command center that turns daily inputs into structured decisions, actions, and lessons — Signal Capture, Decision Engine, Execution Queue, Reflection Engine, Wisdom Library.</p>
+  </div>
+</a>
+<a class="card" href="whatsapp-outreach.html">
+  <div class="icon alt">✆</div>
+  <div>
+    <b>WhatsApp Outreach</b><small>Cold outreach tool</small>
+    <p>Upload a contact list (CSV/Excel), personalize message templates, and launch WhatsApp chats one by one — with progress tracking and CSV export.</p>
+  </div>
+</a>
+
+<div class="kicker">Data Analytics</div>
+<ul class="data">
+  <li>Covid Project — exploration of global COVID data <span class="t">SQL</span></li>
+  <li>Nashville Housing — data cleaning pipeline <span class="t">SQL</span></li>
+  <li>Walmart Sales — sales analysis queries <span class="t">SQL</span></li>
+  <li>AirBnB Portfolio Project — interactive dashboard <span class="t">Tableau</span></li>
+  <li>Data Professional Survey — report <span class="t">Power BI</span></li>
+  <li>Bike Sales — pivot dashboard <span class="t">Excel</span></li>
+</ul>
+
+<footer>Moataz Wasfy · Portfolio</footer>
 </body>
 </html>
